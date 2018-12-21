@@ -1,0 +1,12 @@
+[package]
+name = "dwarfs"
+version = "0.1.0"
+authors = ["Jakob <jakobfischer93@gmail.com>"]
+
+[dependencies]
+gfx = "0.17"
+glutin = "0.19"
+gfx_window_glutin = "0.28"
+log = "0.4"
+env_logger = "0.6"
+rand = "0.6"
