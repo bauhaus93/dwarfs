@@ -1,41 +1,30 @@
 use std::fmt;
 use std::error::Error;
 
-use glutin;
+use dwarfs::graphics;
 
 #[derive(Debug)]
 pub enum ApplicationError {
-    GlutinCreationError(glutin::CreationError),
-    GlutinContextError(glutin::ContextError)
+    GraphicsError(graphics::GraphicsError),
 }
 
-impl From<glutin::CreationError> for ApplicationError {
-    fn from(err: glutin::CreationError) -> ApplicationError {
-        ApplicationError::GlutinCreationError(err)
+impl From<graphics::GraphicsError> for ApplicationError {
+    fn from(err: graphics::GraphicsError) -> ApplicationError {
+        ApplicationError::GraphicsError(err)
     }
 }
-
-impl From<glutin::ContextError> for ApplicationError {
-    fn from(err: glutin::ContextError) -> ApplicationError {
-        ApplicationError::GlutinContextError(err)
-    }
-}
-
-
 
 impl Error for ApplicationError {
 
     fn description(&self) -> &str {
         match *self {
-            ApplicationError::GlutinCreationError(_) => "glutin creation error",
-            ApplicationError::GlutinContextError(_) => "glutin context error"
+            ApplicationError::GraphicsError(_) => "graphics error",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
-            ApplicationError::GlutinCreationError(ref err) => Some(err),
-            ApplicationError::GlutinContextError(ref err) => Some(err)
+            ApplicationError::GraphicsError(ref err) => Some(err),
         }
     }
 }
@@ -43,8 +32,7 @@ impl Error for ApplicationError {
 impl fmt::Display for ApplicationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ApplicationError::GlutinCreationError(ref err) => write!(f, "{}: {}", err.description(), err),
-            ApplicationError::GlutinContextError(ref err) => write!(f, "{}: {}", err.description(), err),
+            ApplicationError::GraphicsError(ref err) => write!(f, "{}: {}", err.description(), err),
         }
     }
 }
