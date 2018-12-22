@@ -3,7 +3,7 @@ use application_error::ApplicationError;
 use graphics;
 
 pub fn run(window_size: (f64, f64)) -> Result<(), ApplicationError> {
-    let mut wnd = graphics::Window::new(window_size);
+    let mut wnd = graphics::Window::new(window_size)?;
 
     debug!("Starting application main loop");
     loop {
@@ -11,7 +11,7 @@ pub fn run(window_size: (f64, f64)) -> Result<(), ApplicationError> {
         if stop {
             break;
         }
-        wnd.render();
+        wnd.render()?;
 
     }
     debug!("Stopped application main loop");
