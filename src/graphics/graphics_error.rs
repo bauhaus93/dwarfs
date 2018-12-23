@@ -3,50 +3,58 @@ use std::error::Error;
 
 use glutin;
 
-use super::shader_error::ShaderError;
+use super::ShaderError;
+use super::ShaderProgramError;
 
 #[derive(Debug)]
 pub enum GraphicsError {
-    GlutinCreationError(glutin::CreationError),
-    GlutinContextError(glutin::ContextError),
-    ShaderError(ShaderError)
+    GlutinCreation(glutin::CreationError),
+    GlutinContext(glutin::ContextError),
+    Shader(ShaderError),
+    ShaderProgram(ShaderProgramError)
 }
 
 impl From<glutin::CreationError> for GraphicsError {
     fn from(err: glutin::CreationError) -> GraphicsError {
-        GraphicsError::GlutinCreationError(err)
+        GraphicsError::GlutinCreation(err)
     }
 }
 
 impl From<glutin::ContextError> for GraphicsError {
     fn from(err: glutin::ContextError) -> GraphicsError {
-        GraphicsError::GlutinContextError(err)
+        GraphicsError::GlutinContext(err)
     }
 }
 
 impl From<ShaderError> for GraphicsError {
     fn from(err: ShaderError) -> GraphicsError {
-        GraphicsError::ShaderError(err)
+        GraphicsError::Shader(err)
     }
 }
 
-
+impl From<ShaderProgramError> for GraphicsError {
+    fn from(err: ShaderProgramError) -> GraphicsError {
+        GraphicsError::ShaderProgram(err)
+    }
+}
 
 impl Error for GraphicsError {
 
     fn description(&self) -> &str {
         match *self {
-            GraphicsError::GlutinCreationError(_) => "glutin creation error",
-            GraphicsError::GlutinContextError(_) => "glutin context error",
-            GraphicsError::ShaderError(_) => "shader error"
+            GraphicsError::GlutinCreation(_) => "glutin creation",
+            GraphicsError::GlutinContext(_) => "glutin context",
+            GraphicsError::Shader(_) => "shader",
+            GraphicsError::ShaderProgram(_) => "shader program"
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
-            GraphicsError::GlutinCreationError(ref err) => Some(err),
-            GraphicsError::GlutinContextError(ref err) => Some(err),
-            GraphicsError::ShaderError(ref err) => Some(err)
+            GraphicsError::GlutinCreation(ref err) => Some(err),
+            GraphicsError::GlutinContext(ref err) => Some(err),
+            GraphicsError::Shader(ref err) => Some(err),
+            GraphicsError::ShaderProgram(ref err) => Some(err)
         }
     }
 }
@@ -54,9 +62,10 @@ impl Error for GraphicsError {
 impl fmt::Display for GraphicsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            GraphicsError::GlutinCreationError(ref err) => write!(f, "{}: {}", err.description(), err),
-            GraphicsError::GlutinContextError(ref err) => write!(f, "{}: {}", err.description(), err),
-            GraphicsError::ShaderError(ref err) => write!(f, "{}: {}", err.description(), err)
+            GraphicsError::GlutinCreation(ref err) => write!(f, "{}: {}", self.description(), err),
+            GraphicsError::GlutinContext(ref err) => write!(f, "{}: {}", self.description(), err),
+            GraphicsError::Shader(ref err) => write!(f, "{}/{}", self.description(), err),
+            GraphicsError::ShaderProgram(ref err) => write!(f, "{}/{}", self.description(), err)
         }
     }
 }

@@ -1,10 +1,12 @@
 use std::ptr;
 use gl;
-use gl::types::{ GLuint, GLenum };
+use gl::types::{ GLuint, GLint, GLenum };
 
 use utility::read_file;
 use super::ShaderProgram;
 use super::ShaderError;
+use super::ShaderProgramError;
+use super::GraphicsError;
 
 pub struct ShaderProgramBuilder {
     shader_list: Vec<Shader>
@@ -15,9 +17,7 @@ struct Shader {
     shader_file_path: String
 }
 
-
 impl ShaderProgramBuilder {
-
 
     pub fn new() -> ShaderProgramBuilder {
         ShaderProgramBuilder {
@@ -34,30 +34,46 @@ impl ShaderProgramBuilder {
         self
     }
 
-    pub fn finish(mut self) -> Result<ShaderProgram, ShaderError> {
-        let shader_ids = compile_shaders(self.shader_list)?;
-    
-        debug!("Creating shader program");
+    pub fn finish(self) -> Result<ShaderProgram, GraphicsError> {
+        info!("Creating shader program, using {} shaders", self.shader_list.len());
+        let shader_ids = compile_shaders(self.shader_list)?; 
         let program_id = unsafe {
             let program_id = gl::CreateProgram();
-            for shader_id in shader_ids {
-                gl::AttachShader(program_id, shader_id);
+            for shader_id in &shader_ids {
+                gl::AttachShader(program_id, *shader_id);
             }
+            debug!("Linking shader program");
             gl::LinkProgram(program_id);
+            for shader_id in &shader_ids {
+                gl::DetachShader(program_id, *shader_id);
+            }
+            delete_shaders(shader_ids);
+
+            let mut success: GLint = 0;
+            gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
+            if success == 0 {
+                let err = Err(GraphicsError::from(ShaderProgramError::Linkage(program_id)));
+                gl::DeleteProgram(program_id);
+                return err;
+            }
             program_id
         };
         let program = ShaderProgram::new(program_id);
         Ok(program)
     }
-
 }
 
 fn compile_shaders(shader_list: Vec<Shader>) -> Result<Vec<GLuint>, ShaderError> {
     let mut shader_ids: Vec<GLuint> = Vec::new();
     for shader in shader_list {
-        let shader_id = compile_shader(shader)?;
+        let shader_id = match compile_shader(shader) {
+            Ok(s) => s,
+            Err(e) => {
+                    delete_shaders(shader_ids);
+                    return Err(e);
+                }
+        };
         shader_ids.push(shader_id);
-    
     }
     Ok(shader_ids)
 }
@@ -69,17 +85,28 @@ fn compile_shader(shader: Shader) -> Result<GLuint, ShaderError> {
         unknown_type => { return Err(ShaderError::UnknownShaderType(unknown_type)); }
     };
     debug!("Compiling {}", shader_name);
-    trace!("Reading shader file '{}'", shader.shader_file_path);
-    let source = read_file(&shader.shader_file_path)?;
+    let source = read_file(&shader.shader_file_path)? + "\0";
     let shader_id = unsafe {
         let id = gl::CreateShader(shader.shader_type);
         gl::ShaderSource(id, 1, [source.as_ptr() as *const _].as_ptr(), ptr::null());
         gl::CompileShader(id);
+        let mut success: GLint = 0;
+        gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
+        if success == 0 {
+            let err = Err(ShaderError::Compilation(id));
+            gl::DeleteShader(id);
+            return err;
+        }        
         id
     };
-    debug!("Compiled shader");
     Ok(shader_id)
 }
 
-
+fn delete_shaders(shader_ids: Vec<GLuint>) {
+    unsafe {
+        for id in shader_ids {
+            gl::DeleteShader(id);
+        }
+    }
+}
 

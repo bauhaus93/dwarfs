@@ -3,6 +3,7 @@ use std::fs;
 use std::io::Read;
 
 pub fn read_file(file_path: &str) -> Result<String, io::Error>  {
+    trace!("reading file '{}'", file_path);
     let file = fs::File::open(file_path)?;
     let mut buf_reader = io::BufReader::new(file);
     let mut content = String::new();

@@ -5,12 +5,12 @@ use super::graphics;
 
 #[derive(Debug)]
 pub enum ApplicationError {
-    GraphicsError(graphics::GraphicsError),
+    Graphics(graphics::GraphicsError),
 }
 
 impl From<graphics::GraphicsError> for ApplicationError {
     fn from(err: graphics::GraphicsError) -> ApplicationError {
-        ApplicationError::GraphicsError(err)
+        ApplicationError::Graphics(err)
     }
 }
 
@@ -18,13 +18,13 @@ impl Error for ApplicationError {
 
     fn description(&self) -> &str {
         match *self {
-            ApplicationError::GraphicsError(_) => "graphics error",
+            ApplicationError::Graphics(_) => "graphics",
         }
     }
 
     fn cause(&self) -> Option<&Error> {
         match *self {
-            ApplicationError::GraphicsError(ref err) => Some(err),
+            ApplicationError::Graphics(ref err) => Some(err),
         }
     }
 }
@@ -32,7 +32,7 @@ impl Error for ApplicationError {
 impl fmt::Display for ApplicationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ApplicationError::GraphicsError(ref err) => write!(f, "{}: {}", err.description(), err),
+            ApplicationError::Graphics(ref err) => write!(f, "{}/{}", self.description(), err),
         }
     }
 }
