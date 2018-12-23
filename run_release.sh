@@ -1,2 +1,1 @@
-#!/bin/bash
-RUST_LOG="dwarfs=info" cargo run --bin main --release
+RUST_LOG="app,dwarfs=info" cargo run --bin app --release

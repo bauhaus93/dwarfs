@@ -1,2 +1,1 @@
-#!/bin/bash
-RUST_LOG="dwarfs=debug" cargo run --bin main
+RUST_LOG="app,dwarfs=debug" cargo run --bin app

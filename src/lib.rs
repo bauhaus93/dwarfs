@@ -8,3 +8,6 @@ extern crate glutin;
 pub mod application;
 mod application_error;
 mod graphics;
+mod utility;
+
+pub use self::application::Application;
