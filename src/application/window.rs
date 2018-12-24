@@ -2,10 +2,9 @@ use glutin;
 use gl;
 use glutin::GlContext;
 
-use super::GraphicsError;
-use super::util;
+use graphics;
 
-pub fn init_window(window_size: (f64, f64), events_loop: &glutin::EventsLoop) -> Result<glutin::GlWindow, GraphicsError> {
+pub fn init_window(window_size: (f64, f64), events_loop: &glutin::EventsLoop) -> Result<glutin::GlWindow, graphics::GraphicsError> {
     info!("Creating window, size {}x{}", window_size.0, window_size.1);
     let window_builder = glutin::WindowBuilder::new()
         .with_dimensions(glutin::dpi::LogicalSize::new(window_size.0, window_size.1));
@@ -15,18 +14,15 @@ pub fn init_window(window_size: (f64, f64), events_loop: &glutin::EventsLoop) ->
     let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)?;
     gl::load_with(|s| window.context().get_proc_address(s) as *const _);
 
-
     debug!("Making window active");
     unsafe {
         window.make_current()?;
     }
-    debug!("Show window");
     window.show();
 
-    match util::get_opengl_version() {
+    match graphics::get_opengl_version() {
         Ok(version) => { info!("opengl version: {}", version) },
         Err(e) => { warn!("Could not convert opengl version string: {}", e); }
     }
-
     Ok(window)
 }

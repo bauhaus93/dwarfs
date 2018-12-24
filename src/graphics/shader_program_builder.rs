@@ -46,63 +46,70 @@ impl ShaderProgramBuilder {
         info!("Creating shader program, using {} shader/s", self.shader_list.len());
         let shader_ids = compile_shaders(self.shader_list)?; 
         let program_id = unsafe {
-            let program_id = gl::CreateProgram();
-            if program_id == 0 {
-                delete_shaders(shader_ids);
-                OpenglError::check_error("gl::CreateProgram")?;
-                return Err(GraphicsError::FunctionFailure("gl::CreateProgram".to_string()));
-            }
+            gl::CreateProgram()
+        };
+        if program_id == 0 {
+            delete_shaders(shader_ids);
+            OpenglError::check_error("gl::CreateProgram")?;
+            return Err(GraphicsError::FunctionFailure("gl::CreateProgram".to_string()));
+        }
 
-            for shader_id in &shader_ids {
-                gl::AttachShader(program_id, *shader_id);
+        for shader_id in &shader_ids {
+            unsafe {
+               gl::AttachShader(program_id, *shader_id);
             }
-            match OpenglError::check_error("gl::AttachShader") {
-                Ok(_) => { },
-                Err(e) => {
-                    cleanup_shader_program(program_id, shader_ids);
-                    return Err(GraphicsError::from(e));
-                }
+        }
+        match OpenglError::check_error("gl::AttachShader") {
+            Ok(_) => { },
+            Err(e) => {
+                cleanup_shader_program(program_id, shader_ids);
+                return Err(GraphicsError::from(e));
             }
+        }
 
-            debug!("Linking shader program");
+        debug!("Linking shader program");
+        unsafe {
             gl::LinkProgram(program_id);
-            match OpenglError::check_error("gl::LinkProgram") {
-                Ok(_) => { },
-                Err(e) => {
-                    cleanup_shader_program(program_id, shader_ids);
-                    return Err(GraphicsError::from(e));
-                }
+        }
+        match OpenglError::check_error("gl::LinkProgram") {
+            Ok(_) => { },
+            Err(e) => {
+                cleanup_shader_program(program_id, shader_ids);
+                return Err(GraphicsError::from(e));
             }
+        }
 
-            for shader_id in &shader_ids {
+        for shader_id in &shader_ids {
+            unsafe {
                 gl::DetachShader(program_id, *shader_id);
             }
-            match OpenglError::check_error("gl::DetachShader") {
-                Ok(_) => { },
-                Err(e) => {
-                    cleanup_shader_program(program_id, shader_ids);
-                    return Err(GraphicsError::from(e));
-                }
+        }
+        match OpenglError::check_error("gl::DetachShader") {
+            Ok(_) => { },
+            Err(e) => {
+                cleanup_shader_program(program_id, shader_ids);
+                return Err(GraphicsError::from(e));
             }
+        }
             
-            delete_shaders(shader_ids);
+        delete_shaders(shader_ids);
 
-            let mut success: GLint = 0;
+        let mut success: GLint = 0;
+        unsafe {
             gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
-            match OpenglError::check_error("gl::GetProgramiv") {
-                Ok(_) => { },
-                Err(e) => {
-                    delete_program(program_id);
-                    return Err(GraphicsError::from(e));
-                }
-            }
-            if success == 0 {
-                let err = Err(GraphicsError::from(ShaderProgramError::Linkage(program_id)));
+        }
+        match OpenglError::check_error("gl::GetProgramiv") {
+            Ok(_) => { },
+            Err(e) => {
                 delete_program(program_id);
-                return err;
+                return Err(GraphicsError::from(e));
             }
-            program_id
-        };
+        }
+        if success == 0 {
+            let err = Err(GraphicsError::from(ShaderProgramError::Linkage(program_id)));
+            delete_program(program_id);
+            return err;
+        }
         let program = ShaderProgram::new(program_id)?;
         Ok(program)
     }

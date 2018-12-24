@@ -2,9 +2,9 @@ use std::{ thread, time };
 
 use glutin;
 
-use application_error::ApplicationError;
+use super::ApplicationError;
+use super::window;
 use graphics;
-
 
 pub struct Application {
     stop: bool,
@@ -17,7 +17,7 @@ impl Application {
 
     pub fn new(window_size: (f64, f64)) -> Result<Application, ApplicationError> {
         let events_loop = glutin::EventsLoop::new();
-        let window = graphics::init_window(window_size, &events_loop)?;
+        let window = window::init_window(window_size, &events_loop)?;
         let program = graphics::ShaderProgramBuilder::new()
             .add_vertex_shader("shader/VertexShader.glsl")
             .add_fragment_shader("shader/FragmentShader.glsl")

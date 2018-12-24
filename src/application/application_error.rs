@@ -1,7 +1,7 @@
 use std::fmt;
 use std::error::Error;
 
-use super::graphics;
+use graphics;
 
 #[derive(Debug)]
 pub enum ApplicationError {

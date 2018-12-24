@@ -5,7 +5,6 @@ extern crate gl;
 extern crate glutin;
 
 pub mod application;
-mod application_error;
 mod graphics;
 mod utility;
 
