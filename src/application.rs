@@ -1,7 +1,6 @@
 use std::{ thread, time };
 
 use glutin;
-use gl;
 
 use application_error::ApplicationError;
 use graphics;
@@ -20,8 +19,8 @@ impl Application {
         let events_loop = glutin::EventsLoop::new();
         let window = graphics::init_window(window_size, &events_loop)?;
         let program = graphics::ShaderProgramBuilder::new()
-            .add_shader(gl::VERTEX_SHADER, "shader/VertexShader.glsl")
-            .add_shader(gl::FRAGMENT_SHADER, "shader/FragmentShader.glsl")
+            .add_vertex_shader("shader/VertexShader.glsl")
+            .add_fragment_shader("shader/FragmentShader.glsl")
             .finish()?;
 
         let app = Application {

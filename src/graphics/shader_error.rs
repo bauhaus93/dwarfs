@@ -4,16 +4,26 @@ use std::io;
 
 use gl::types::{ GLuint, GLint };
 
+use super::OpenglError;
+
 #[derive(Debug)]
 pub enum ShaderError {
     IO(io::Error),
     UnknownShaderType(GLuint),
     Compilation(GLuint),
+    Opengl(OpenglError),
+    FunctionFailure(String)
 }
 
 impl From<io::Error> for ShaderError {
     fn from(err: io::Error) -> ShaderError {
         ShaderError::IO(err)
+    }
+}
+
+impl From<OpenglError> for ShaderError {
+    fn from(err: OpenglError) -> ShaderError {
+        ShaderError::Opengl(err)
     }
 }
 
@@ -24,6 +34,8 @@ impl Error for ShaderError {
             ShaderError::IO(_) => "io",
             ShaderError::UnknownShaderType(_) => "unknown shader type",
             ShaderError::Compilation(_) => "compilation",
+            ShaderError::Opengl(_) => "opengl",
+            ShaderError::FunctionFailure(_) => "function failure"
         }
     }
 
@@ -32,6 +44,8 @@ impl Error for ShaderError {
             ShaderError::IO(ref err) => Some(err),
             ShaderError::UnknownShaderType(_) => None,
             ShaderError::Compilation(_) => None,
+            ShaderError::Opengl(ref err) => Some(err),
+            ShaderError::FunctionFailure(_) => None
         }
     }
 }
@@ -42,6 +56,8 @@ impl fmt::Display for ShaderError {
             ShaderError::IO(ref err) => write!(f, "{}: {}", self.description(), err),
             ShaderError::UnknownShaderType(type_id) => write!(f, "{}: type id is {}", self.description(), type_id),
             ShaderError::Compilation(shader_id) => write!(f, "{}: {}", self.description(), get_shader_log(shader_id)),
+            ShaderError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err),
+            ShaderError::FunctionFailure(ref func_name) => write!(f, "{} @ {}", self.description(), func_name)
         }
     }
 }
