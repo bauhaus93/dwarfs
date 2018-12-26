@@ -14,7 +14,6 @@ pub struct TextureArrayBuilder {
     texture_origins: Vec<(u32, u32)>
 }
 
-
 impl TextureArrayBuilder {
 
     pub fn new(atlas_path: &str, texture_size: (u32, u32)) -> TextureArrayBuilder {
@@ -31,12 +30,13 @@ impl TextureArrayBuilder {
     }
 
     pub fn finish(self) -> Result<TextureArray, GraphicsError> {
+        info!("Creating texture array");
         let mipmaps = {
             let dim = min(self.texture_size.0, self.texture_size.1) as f32;
             dim.log(2.0) as u32
         };
         let layer_count: u32 = self.texture_origins.len() as u32;
-        debug!("Creating texture array of size {}x{} with {} layers, {} mipmaps", self.texture_size.0, self.texture_size.1, layer_count, mipmaps);
+        debug!("Size = {}x{}x{}, mipmaps = {}", self.texture_size.0, self.texture_size.1, layer_count, mipmaps);
         let texture_id = create_texture(
             (self.texture_size.0 as GLsizei, self.texture_size.1 as GLsizei),
             layer_count as GLsizei,
@@ -112,8 +112,9 @@ fn create_texture(size: (GLsizei, GLsizei), layers: GLsizei, mipmaps: GLsizei) -
 
 fn add_subimages(texture_id: GLuint, img: image::RgbaImage, sub_size: (u32, u32), sub_origins: &[(u32, u32)])  -> Result<(), GraphicsError>{ 
     for (layer, origin) in sub_origins.iter().enumerate() {
+        trace!("Adding subimage, origin = {}/{}", origin.0, origin.1);
         let sub_img = img.view(origin.0, origin.1, sub_size.0, sub_size.1).to_image();
-        let pixels: Vec<u8> = sub_img.into_raw();//pixels().fold(Vec::<u8>::new(), |v, e|  Vec::v + (e.into_iter()));
+        let pixels: Vec<u8> = sub_img.into_raw();
         add_subimage(
             texture_id,
             (sub_size.0 as GLsizei, sub_size.1 as GLsizei),
@@ -139,10 +140,10 @@ fn add_subimage(texture_id: GLuint, size: (GLsizei, GLsizei), layer: GLsizei, su
             sub_image.as_ptr() as * const _
         );
         check_opengl_error("gl::TexSubImage3D")?;
-        /*gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as GLint);
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as GLint);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as GLint);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST_MIPMAP_NEAREST as GLint);
-        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST_MIPMAP_NEAREST as GLint);*/
+        gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as GLint);
         check_opengl_error("gl::TexParameteri")?;
         gl::GenerateMipmap(gl::TEXTURE_2D_ARRAY);
         check_opengl_error("gl::GenerateMipmap")?;

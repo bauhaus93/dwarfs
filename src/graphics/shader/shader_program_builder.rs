@@ -40,7 +40,7 @@ impl ShaderProgramBuilder {
         self
     }
     pub fn finish(self) -> Result<ShaderProgram, GraphicsError> {
-        info!("Creating shader program, using {} shader/s", self.shader_list.len());
+        info!("Creating shader program");
         let shader_ids = compile_shaders(self.shader_list)?; 
         let program_id = unsafe {
             gl::CreateProgram()

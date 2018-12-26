@@ -1,1 +1,1 @@
-RUST_LOG="app,dwarfs=info" cargo run --bin app --release
+RUST_LOG="app,dwarfs=debug" cargo run --bin app --release
