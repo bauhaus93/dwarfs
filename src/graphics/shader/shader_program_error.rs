@@ -4,7 +4,7 @@ use std::error::Error;
 use gl;
 use gl::types::{ GLuint, GLint };
 
-use super::OpenglError;
+use graphics::OpenglError;
 
 #[derive(Debug)]
 pub enum ShaderProgramError {

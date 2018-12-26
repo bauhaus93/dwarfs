@@ -3,11 +3,8 @@ use gl;
 use gl::types::{ GLuint, GLint, GLenum };
 
 use utility::read_file;
-use super::ShaderProgram;
-use super::ShaderError;
-use super::ShaderProgramError;
-use super::GraphicsError;
-use super::OpenglError;
+use graphics::{ GraphicsError, check_opengl_error };
+use super::{ ShaderProgram, ShaderError, ShaderProgramError };
 
 pub struct ShaderProgramBuilder {
     shader_list: Vec<Shader>
@@ -50,8 +47,8 @@ impl ShaderProgramBuilder {
         };
         if program_id == 0 {
             delete_shaders(shader_ids);
-            OpenglError::check_error("gl::CreateProgram")?;
-            return Err(GraphicsError::FunctionFailure("gl::CreateProgram".to_string()));
+            check_opengl_error("gl::CreateProgram")?;
+            return Err(GraphicsError::from(ShaderProgramError::FunctionFailure("gl::CreateProgram".to_string())));
         }
 
         for shader_id in &shader_ids {
@@ -59,7 +56,7 @@ impl ShaderProgramBuilder {
                gl::AttachShader(program_id, *shader_id);
             }
         }
-        match OpenglError::check_error("gl::AttachShader") {
+        match check_opengl_error("gl::AttachShader") {
             Ok(_) => { },
             Err(e) => {
                 cleanup_shader_program(program_id, shader_ids);
@@ -71,7 +68,7 @@ impl ShaderProgramBuilder {
         unsafe {
             gl::LinkProgram(program_id);
         }
-        match OpenglError::check_error("gl::LinkProgram") {
+        match check_opengl_error("gl::LinkProgram") {
             Ok(_) => { },
             Err(e) => {
                 cleanup_shader_program(program_id, shader_ids);
@@ -84,7 +81,7 @@ impl ShaderProgramBuilder {
                 gl::DetachShader(program_id, *shader_id);
             }
         }
-        match OpenglError::check_error("gl::DetachShader") {
+        match check_opengl_error("gl::DetachShader") {
             Ok(_) => { },
             Err(e) => {
                 cleanup_shader_program(program_id, shader_ids);
@@ -98,7 +95,7 @@ impl ShaderProgramBuilder {
         unsafe {
             gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
         }
-        match OpenglError::check_error("gl::GetProgramiv") {
+        match check_opengl_error("gl::GetProgramiv") {
             Ok(_) => { },
             Err(e) => {
                 delete_program(program_id);

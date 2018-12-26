@@ -16,21 +16,19 @@ pub enum OpenglError {
     ContextLost(String)
 }
 
-impl OpenglError {
-    pub fn check_error(func_name: &str) -> Result<(), OpenglError> {
-        let func_string = func_name.to_string();
-        match get_opengl_error() {
-            gl::NO_ERROR => Ok(()),
-            gl::INVALID_VALUE => Err(OpenglError::InvalidValue(func_string)),
-            gl::INVALID_OPERATION => Err(OpenglError::InvalidOperation(func_string)),
-            gl::INVALID_ENUM => Err(OpenglError::InvalidEnum(func_string)),
-            gl::STACK_OVERFLOW => Err(OpenglError::StackOverflow(func_string)),
-            gl::STACK_UNDERFLOW => Err(OpenglError::StackUnderflow(func_string)),
-            gl::OUT_OF_MEMORY => Err(OpenglError::OutOfMemory(func_string)),
-            gl::INVALID_FRAMEBUFFER_OPERATION => Err(OpenglError::InvalidFramebufferOperation(func_string)),
-            gl::CONTEXT_LOST => Err(OpenglError::ContextLost(func_string)),
-            _ => unreachable!()
-        }
+pub fn check_opengl_error(func_name: &str) -> Result<(), OpenglError> {
+    let func_string = func_name.to_string();
+    match get_opengl_error() {
+        gl::NO_ERROR => Ok(()),
+        gl::INVALID_VALUE => Err(OpenglError::InvalidValue(func_string)),
+        gl::INVALID_OPERATION => Err(OpenglError::InvalidOperation(func_string)),
+        gl::INVALID_ENUM => Err(OpenglError::InvalidEnum(func_string)),
+        gl::STACK_OVERFLOW => Err(OpenglError::StackOverflow(func_string)),
+        gl::STACK_UNDERFLOW => Err(OpenglError::StackUnderflow(func_string)),
+        gl::OUT_OF_MEMORY => Err(OpenglError::OutOfMemory(func_string)),
+        gl::INVALID_FRAMEBUFFER_OPERATION => Err(OpenglError::InvalidFramebufferOperation(func_string)),
+        gl::CONTEXT_LOST => Err(OpenglError::ContextLost(func_string)),
+        _ => unreachable!()
     }
 }
 

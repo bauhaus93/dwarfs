@@ -2,7 +2,7 @@ use gl;
 use gl::types::{ GLint, GLuint };
 
 use super::ShaderProgramError;
-use super::OpenglError;
+use graphics::{ check_opengl_error };
 
 pub struct ShaderProgram {
     id: GLuint, 
@@ -53,7 +53,7 @@ fn get_resource_handle(program_id: GLuint, resource_name: &str) -> Result<GLint,
         gl::GetUniformLocation(program_id, res_name_zero_term.as_ptr() as *const _)
     };
     if handle == -1 {
-        OpenglError::check_error("gl::GetUniformLocation")?;
+        check_opengl_error("gl::GetUniformLocation")?;
         return Err(ShaderProgramError::FunctionFailure("gl::GetUniformLocation".to_string()));
     }
     Ok(handle)
