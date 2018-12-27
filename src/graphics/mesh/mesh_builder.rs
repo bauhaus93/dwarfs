@@ -100,6 +100,16 @@ impl MeshBuilder {
     Ok(vbos)
     }
 
+    fn load_vao(&self, vbos: &[GLuint; 4]) -> Result<GLuint, OpenglError> {
+        unsafe {
+            let mut vao: GLuint = 0;
+            gl::GenVertexArrays(1, &mut vao);
+
+
+            Ok(vao)
+        }
+    }
+
 }
 
 fn fill_buffer(buffer_id: GLuint, buffer_type: GLenum, buffer_size: GLsizeiptr, buffer_data: * const c_void) -> Result<(), OpenglError> {

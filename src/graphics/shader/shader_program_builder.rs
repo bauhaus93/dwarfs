@@ -7,12 +7,17 @@ use graphics::{ GraphicsError, check_opengl_error };
 use super::{ ShaderProgram, ShaderError, ShaderProgramError };
 
 pub struct ShaderProgramBuilder {
-    shader_list: Vec<Shader>
+    shader_list: Vec<Shader>,
 }
 
 struct Shader {
     shader_type: GLenum,
     shader_file_path: String
+}
+
+struct Resources {
+    program_id: GLuint,
+    shader_ids: Vec<GLuint>
 }
 
 impl ShaderProgramBuilder {
@@ -40,85 +45,108 @@ impl ShaderProgramBuilder {
         self
     }
     pub fn finish(self) -> Result<ShaderProgram, GraphicsError> {
-        info!("Creating shader program");
-        let shader_ids = compile_shaders(self.shader_list)?; 
-        let program_id = unsafe {
-            gl::CreateProgram()
-        };
-        if program_id == 0 {
-            delete_shaders(shader_ids);
-            check_opengl_error("gl::CreateProgram")?;
-            return Err(GraphicsError::from(ShaderProgramError::FunctionFailure("gl::CreateProgram".to_string())));
-        }
-
-        for shader_id in &shader_ids {
-            unsafe {
-               gl::AttachShader(program_id, *shader_id);
-            }
-        }
-        match check_opengl_error("gl::AttachShader") {
-            Ok(_) => { },
-            Err(e) => {
-                cleanup_shader_program(program_id, shader_ids);
-                return Err(GraphicsError::from(e));
-            }
-        }
-
-        debug!("Linking shader program");
-        unsafe {
-            gl::LinkProgram(program_id);
-        }
-        match check_opengl_error("gl::LinkProgram") {
-            Ok(_) => { },
-            Err(e) => {
-                cleanup_shader_program(program_id, shader_ids);
-                return Err(GraphicsError::from(e));
-            }
-        }
-
-        for shader_id in &shader_ids {
-            unsafe {
-                gl::DetachShader(program_id, *shader_id);
-            }
-        }
-        match check_opengl_error("gl::DetachShader") {
-            Ok(_) => { },
-            Err(e) => {
-                cleanup_shader_program(program_id, shader_ids);
-                return Err(GraphicsError::from(e));
-            }
-        }
-            
-        delete_shaders(shader_ids);
-
-        let mut success: GLint = 0;
-        unsafe {
-            gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
-        }
-        match check_opengl_error("gl::GetProgramiv") {
-            Ok(_) => { },
-            Err(e) => {
-                delete_program(program_id);
-                return Err(GraphicsError::from(e));
-            }
-        }
-        if success == 0 {
-            let err = Err(GraphicsError::from(ShaderProgramError::Linkage(program_id)));
-            delete_program(program_id);
-            return err;
-        }
+        let mut resources = Resources::new(&self.shader_list)?;
+        let program_id = resources.build()?;
         let program = ShaderProgram::new(program_id)?;
         Ok(program)
     }
 }
 
-fn compile_shaders(shader_list: Vec<Shader>) -> Result<Vec<GLuint>, ShaderError> {
+impl Resources {
+    pub fn new(shader_list: &[Shader]) -> Result<Resources, GraphicsError> {
+        debug!("Creating new shader program");
+        let shader_ids: Vec<GLuint> = compile_shaders(shader_list)?;
+        let program_id: GLuint = unsafe { gl::CreateProgram() };
+        if program_id == 0 {
+            check_opengl_error("gl::CreateProgram")?;
+            delete_shaders(&shader_ids);
+            return Err(GraphicsError::from(ShaderProgramError::FunctionFailure("gl::CreateProgram".to_string())));
+        }
+
+       Ok(Resources {
+            program_id: program_id,
+            shader_ids: shader_ids
+        })
+    }
+
+    pub fn build(mut self) -> Result<GLuint, GraphicsError> {
+        self.attach_shaders()?;
+        self.link_program()?;
+        self.detach_shaders()?;
+        self.delete_shaders()?;
+        self.check_link_success()?;
+        Ok(self.consume())
+    }
+
+    fn attach_shaders(&self) -> Result<(), GraphicsError> {
+        trace!("Attaching shaders");
+        for shader_id in &self.shader_ids {
+            unsafe { gl::AttachShader(self.program_id, *shader_id); }
+            check_opengl_error("gl::AttachShader")?;
+        }
+        Ok(())
+    }
+
+    fn link_program(&self) -> Result<(), GraphicsError> {
+        debug!("Linking shader program");
+        unsafe { gl::LinkProgram(self.program_id); }
+        check_opengl_error("gl::LinkProgram")?;
+        Ok(())
+    }
+
+    fn detach_shaders(&self) -> Result<(), GraphicsError> {
+        trace!("Detaching shaders");
+        for shader_id in &self.shader_ids {
+            unsafe { gl::DetachShader(self.program_id, *shader_id); }
+            check_opengl_error("gl::DetachShader")?;
+        }
+        Ok(())
+    }
+
+    fn delete_shaders(&mut self) -> Result<(), GraphicsError> {
+        trace!("Deleting shaders");
+        delete_shaders(&self.shader_ids);
+        check_opengl_error("gl::DeleteShader")?;
+        self.shader_ids.clear();
+        Ok(())
+    }
+
+    fn check_link_success(&self) -> Result<(), GraphicsError> {
+        let mut success: GLint = 0;
+        unsafe { gl::GetProgramiv(self.program_id, gl::LINK_STATUS, &mut success); }
+        check_opengl_error("gl::GetProgramiv")?;
+        if success == 0 {
+            return Err(GraphicsError::from(ShaderProgramError::Linkage(self.program_id)));
+        }
+        Ok(())
+    }
+
+    fn consume(mut self) -> GLuint {
+        let id = self.program_id;
+        self.program_id = 0;
+        id
+    }
+}
+
+impl Drop for Resources {
+    fn drop(&mut self) {
+        if self.program_id > 0 {
+            detach_attached_shaders(self.program_id);
+        }
+        delete_shaders(&self.shader_ids);
+        if self.program_id > 0 {
+            delete_program(self.program_id);
+        }
+    }
+}
+
+fn compile_shaders(shader_list: &[Shader]) -> Result<Vec<GLuint>, ShaderError> {
     let mut shader_ids: Vec<GLuint> = Vec::new();
     for shader in shader_list {
         let shader_id = match compile_shader(shader) {
             Ok(s) => s,
             Err(e) => {
-                    delete_shaders(shader_ids);
+                    delete_shaders(&shader_ids);
                     return Err(e);
                 }
         };
@@ -127,7 +155,7 @@ fn compile_shaders(shader_list: Vec<Shader>) -> Result<Vec<GLuint>, ShaderError>
     Ok(shader_ids)
 }
 
-fn compile_shader(shader: Shader) -> Result<GLuint, ShaderError> {
+fn compile_shader(shader: &Shader) -> Result<GLuint, ShaderError> {
     let shader_name = match shader.shader_type {
         gl::FRAGMENT_SHADER => "fragment shader",
         gl::VERTEX_SHADER => "vertex shader",
@@ -151,28 +179,26 @@ fn compile_shader(shader: Shader) -> Result<GLuint, ShaderError> {
     Ok(shader_id)
 }
 
-fn cleanup_shader_program(program_id: GLuint, shader_ids: Vec<GLuint>) {
-    detach_attached_shaders(program_id);
-    delete_shaders(shader_ids);
-    delete_program(program_id);
-}
-
 fn delete_program(program_id: GLuint) {
+    trace!("Deleting shader program");
     debug_assert!(program_id != 0);
     unsafe {
         gl::DeleteProgram(program_id);
     }
 }
 
-fn delete_shaders(shader_ids: Vec<GLuint>) {
+fn delete_shaders(shader_ids: &[GLuint]) {
+    trace!("Deleting shaders");
     unsafe {
         for id in shader_ids {
-            gl::DeleteShader(id);
+            gl::DeleteShader(*id);
         }
     }
 }
 
 fn detach_attached_shaders(program_id: GLuint) {
+    trace!("Detaching attached shaders");
+    debug_assert!(program_id != 0);
     let attach_count = unsafe {
         let mut count: GLint = 0;
         gl::GetProgramiv(program_id, gl::ATTACHED_SHADERS, &mut count);

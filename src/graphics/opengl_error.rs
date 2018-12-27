@@ -18,7 +18,7 @@ pub enum OpenglError {
 
 pub fn check_opengl_error(func_name: &str) -> Result<(), OpenglError> {
     let func_string = func_name.to_string();
-    match get_opengl_error() {
+    match get_opengl_error_code() {
         gl::NO_ERROR => Ok(()),
         gl::INVALID_VALUE => Err(OpenglError::InvalidValue(func_string)),
         gl::INVALID_OPERATION => Err(OpenglError::InvalidOperation(func_string)),
@@ -66,7 +66,7 @@ impl fmt::Display for OpenglError {
     }
 }
 
-fn get_opengl_error() -> GLuint {
+fn get_opengl_error_code() -> GLuint {
     unsafe {
         gl::GetError()    
     }
