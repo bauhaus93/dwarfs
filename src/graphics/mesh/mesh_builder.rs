@@ -1,5 +1,9 @@
-use gl::types::{ GLfloat, GLuint };
+use std::mem::size_of;
+use std::ffi::c_void;
+use gl;
+use gl::types::{ GLfloat, GLuint, GLenum, GLsizeiptr };
 
+use graphics::{ OpenglError, check_opengl_error };
 use super::{ Vertex, Triangle, Quad, Mesh };
 
 pub struct MeshBuilder { 
@@ -54,6 +58,63 @@ impl MeshBuilder {
         self 
     }
 
+    fn load_vbos(&self) -> Result<[GLuint; 4], OpenglError> {
+        let mut vbos: [GLuint; 4] = [0; 4];
+        
+        unsafe {
+            gl::GenBuffers(4, &mut vbos[0] as * mut GLuint);
+            check_opengl_error("gl::GenBuffers")?;
 
+            match fill_buffer(vbos[0], gl::ARRAY_BUFFER, (self.position_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, self.position_buffer.as_ptr() as * const _) {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_buffers(vbos);
+                    return Err(e);
+                }
+            }
+
+            match fill_buffer(vbos[1], gl::ARRAY_BUFFER, (self.uv_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, self.uv_buffer.as_ptr() as * const _) {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_buffers(vbos);
+                    return Err(e);
+                }
+            }
+
+            match fill_buffer(vbos[2], gl::ARRAY_BUFFER, (self.normal_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, self.normal_buffer.as_ptr() as * const _) {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_buffers(vbos);
+                    return Err(e);
+                }
+            }
+
+            match fill_buffer(vbos[3], gl::ELEMENT_ARRAY_BUFFER, (self.index_buffer.len() * size_of::<GLuint>()) as GLsizeiptr, self.index_buffer.as_ptr() as * const _) {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_buffers(vbos);
+                    return Err(e);
+                }
+            }
+        }
+    Ok(vbos)
+    }
+
+}
+
+fn fill_buffer(buffer_id: GLuint, buffer_type: GLenum, buffer_size: GLsizeiptr, buffer_data: * const c_void) -> Result<(), OpenglError> {
+    unsafe {
+        gl::BindBuffer(buffer_type, buffer_id);
+        check_opengl_error("gl::BindBuffer")?;
+        gl::BufferData(buffer_type, buffer_size, buffer_data, gl::STATIC_DRAW);
+        check_opengl_error("gl::BufferData")?;
+    }
+    Ok(()) 
+}
+
+fn delete_buffers(buffers: [GLuint; 4]) {
+    unsafe {
+        gl::DeleteBuffers(4, &buffers[0] as * const GLuint);
+    }
 }
 
