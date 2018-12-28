@@ -1,7 +1,8 @@
 use std::mem::size_of;
 use std::ffi::c_void;
+use std::ptr;
 use gl;
-use gl::types::{ GLfloat, GLuint, GLenum, GLsizeiptr };
+use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
 
 use graphics::{ OpenglError, check_opengl_error };
 use super::{ Vertex, Triangle, Quad, Mesh };
@@ -16,8 +17,8 @@ pub struct MeshBuilder {
 }
 
 impl MeshBuilder {
-    pub fn new() -> MeshBuilder {
-        MeshBuilder {
+    pub fn new() -> Self {
+        Self {
             triangles: Vec::new(),
             indexed_vertices: Vec::new(),
             position_buffer: Vec::new(),
@@ -27,11 +28,14 @@ impl MeshBuilder {
         }
     }
 
-    pub fn add_quad(self, quad: Quad) -> Self {
-        quad.to_triangles().into_iter().fold(self, |s, t| s.add_triangle(t))
+    pub fn add_quad(&mut self, quad: Quad) -> &mut Self {
+        for t in &quad.to_triangles() {
+            self.add_triangle(t);
+        }
+        self
     }
 
-    pub fn add_triangle(mut self, triangle: &Triangle) -> Self {
+    pub fn add_triangle(&mut self, triangle: &Triangle) -> &mut Self {
         for vert in triangle.get_vertices().iter() {
             let new_vert_index = match self.indexed_vertices.iter().find(|(v, _i)| v == vert) {
                 Some((_, i)) => {
@@ -56,6 +60,19 @@ impl MeshBuilder {
             }
         }
         self 
+    }
+
+    pub fn finish(self) -> Result<Mesh, OpenglError> {
+        let vbos = self.load_vbos()?;
+        let vao = match self.load_vao(&vbos) {
+            Ok(vao) => vao,
+            Err(e) => {
+                delete_buffers(vbos);
+                return Err(e);
+            }
+        };
+        let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint, self.triangles);
+        Ok(mesh)
     }
 
     fn load_vbos(&self) -> Result<[GLuint; 4], OpenglError> {
@@ -101,15 +118,60 @@ impl MeshBuilder {
     }
 
     fn load_vao(&self, vbos: &[GLuint; 4]) -> Result<GLuint, OpenglError> {
-        unsafe {
-            let mut vao: GLuint = 0;
-            gl::GenVertexArrays(1, &mut vao);
+        let mut vao: GLuint = 0;
 
+        unsafe { gl::GenVertexArrays(1, &mut vao); }
+        check_opengl_error("gl::GenVertexArrays")?;
 
-            Ok(vao)
+        unsafe { gl::BindVertexArray(vao); }
+        match check_opengl_error("gl::BindVertexArray") {
+            Ok(_) => {},
+            Err(e) => {
+                delete_vertex_array(vao);
+                return Err(e);
+            }
         }
-    }
 
+        for (index, vbo) in vbos[..3].iter().enumerate() {
+            match assign_buffer_to_vao(*vbo, index as GLuint, 3, gl::FLOAT) {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_vertex_array(vao);
+                    return Err(e);
+                }
+            }
+        }
+
+        unsafe { gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, vbos[3]); }
+        match check_opengl_error("gl::BindBuffer") {
+            Ok(_) => {},
+            Err(e) => {
+                delete_vertex_array(vao);
+                return Err(e);
+            }
+        }
+
+        unsafe { gl::BindVertexArray(0); }
+        match check_opengl_error("gl::BindVertexArray") {
+            Ok(_) => {},
+            Err(e) => {
+                delete_vertex_array(vao);
+                return Err(e);
+            }
+        }
+
+        for i in 0..3 {
+            unsafe { gl::DisableVertexAttribArray(i) }
+            match check_opengl_error("gl::DisableVertexAttribArray") {
+                Ok(_) => {},
+                Err(e) => {
+                    delete_vertex_array(vao);
+                    return Err(e);
+                }
+            }
+        }
+        Ok(vao)
+    }
 }
 
 fn fill_buffer(buffer_id: GLuint, buffer_type: GLenum, buffer_size: GLsizeiptr, buffer_data: * const c_void) -> Result<(), OpenglError> {
@@ -120,6 +182,24 @@ fn fill_buffer(buffer_id: GLuint, buffer_type: GLenum, buffer_size: GLsizeiptr, 
         check_opengl_error("gl::BufferData")?;
     }
     Ok(()) 
+}
+
+fn assign_buffer_to_vao(vbo: GLuint, index: GLuint, size: GLint, data_type: GLenum) -> Result<(), OpenglError> {
+    unsafe {
+        gl::EnableVertexAttribArray(index);
+        check_opengl_error("gl::EnableVertexAttribArray")?;
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        check_opengl_error("gl::BindBuffer")?;
+        gl::VertexAttribPointer(index, size, data_type, gl::FALSE, 0, ptr::null());
+        check_opengl_error("gl::VertexAttribPointer")?;    
+    }
+    Ok(())
+}
+
+fn delete_vertex_array(vao: GLuint) {
+    unsafe {
+        gl::DeleteVertexArrays(1, &vao as * const GLuint);
+    }
 }
 
 fn delete_buffers(buffers: [GLuint; 4]) {

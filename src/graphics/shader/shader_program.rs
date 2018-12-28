@@ -37,12 +37,11 @@ impl ShaderProgram {
 
 impl Drop for ShaderProgram {
     fn drop(&mut self) {
-        if self.id != 0 {
-            debug!("Deleting shader program");
-            unsafe {
-                gl::DeleteProgram(self.id);
-            }
-            self.id = 0;
+        debug!("Deleting shader program");
+        unsafe { gl::DeleteProgram(self.id); }
+        match check_opengl_error("gl::DeleteProgram") {
+            Ok(_) => {},
+            Err(e) => error!("{}", e)
         }
     }
 }
