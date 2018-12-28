@@ -3,6 +3,7 @@ extern crate log;
 extern crate env_logger;
 extern crate gl;
 extern crate glutin;
+extern crate glm;
 extern crate image;
 
 pub mod application;
