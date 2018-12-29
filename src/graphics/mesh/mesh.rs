@@ -1,7 +1,8 @@
+use std::ptr;
 use gl; 
 use gl::types::{ GLuint };
 
-use graphics::{ check_opengl_error };
+use graphics::{ check_opengl_error, GraphicsError };
 use super::{ Triangle, Vertex };
 
 pub struct Mesh {
@@ -21,6 +22,20 @@ impl Mesh {
             index_count: index_count,
             triangles: triangles
         }
+    }
+
+    pub fn render(&self) -> Result<(), GraphicsError> {
+        unsafe {
+            gl::BindVertexArray(self.vao);
+            gl::DrawElements(
+                gl::TRIANGLES,
+                self.index_count as i32,
+                gl::UNSIGNED_INT,
+                ptr::null()
+            );
+        }
+        check_opengl_error("Mesh::render")?;
+        Ok(())
     }
 }
 

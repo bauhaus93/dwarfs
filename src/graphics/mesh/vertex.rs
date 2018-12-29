@@ -1,6 +1,6 @@
 use gl::types::GLfloat;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Vertex {
     pos: [GLfloat; 3],
     uv: [GLfloat; 3],
@@ -26,6 +26,16 @@ impl Vertex {
 
     pub fn get_normal(&self) -> &[GLfloat] {
         &self.normal
+    }
+}
+
+impl Default for Vertex {
+    fn default() -> Self {
+        Vertex {
+            pos: [0.; 3],
+            uv: [0.; 3],
+            normal: [0.; 3]
+        }
     }
 }
 

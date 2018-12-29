@@ -5,10 +5,13 @@ use glutin;
 use super::ApplicationError;
 use super::window;
 use graphics;
+use world::World;
 
 pub fn run(window_size: (f64, f64)) -> Result<(), ApplicationError> {
     const SLEEP_TIME: time::Duration = time::Duration::from_millis(100);
     let (mut events_loop, mut window, shader_program, texture_array) = init(window_size)?;
+
+    let mut world = World::new(texture_array)?;
  
     shader_program.use_program();
     debug!("Starting application main loop");
@@ -17,7 +20,7 @@ pub fn run(window_size: (f64, f64)) -> Result<(), ApplicationError> {
         if stop {
             break
         }
-        render(&mut window)?;
+        render(&mut world, &shader_program, &mut window)?;
         thread::sleep(SLEEP_TIME);
     }
     debug!("Stopped application main loop");
@@ -55,7 +58,8 @@ fn handle_events(events_loop: &mut glutin::EventsLoop) -> bool {
     stop_requested
 }
 
-fn render(window: &mut glutin::GlWindow) -> Result<(), graphics::GraphicsError> {
+fn render(world: &mut World, shader: &graphics::ShaderProgram, window: &mut glutin::GlWindow) -> Result<(), graphics::GraphicsError> {
+    world.render(shader)?;
     window.swap_buffers()?;
     Ok(())
 }

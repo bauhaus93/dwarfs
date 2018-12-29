@@ -28,14 +28,14 @@ impl MeshBuilder {
         }
     }
 
-    pub fn add_quad(&mut self, quad: Quad) -> &mut Self {
+    pub fn add_quad(mut self, quad: Quad) -> Self {
         for t in &quad.to_triangles() {
             self.add_triangle(t);
         }
         self
     }
 
-    pub fn add_triangle(&mut self, triangle: &Triangle) -> &mut Self {
+    fn add_triangle(&mut self, triangle: &Triangle) {
         for vert in triangle.get_vertices().iter() {
             let new_vert_index = match self.indexed_vertices.iter().find(|(v, _i)| v == vert) {
                 Some((_, i)) => {
@@ -59,7 +59,6 @@ impl MeshBuilder {
                 None => {}
             }
         }
-        self 
     }
 
     pub fn finish(self) -> Result<Mesh, OpenglError> {

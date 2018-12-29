@@ -1,5 +1,6 @@
 use gl;
-use gl::types::{ GLint, GLuint };
+use gl::types::{ GLint, GLuint, GLfloat };
+use glm::Matrix4;
 
 use super::ShaderProgramError;
 use graphics::{ check_opengl_error };
@@ -32,6 +33,14 @@ impl ShaderProgram {
         unsafe {
             gl::UseProgram(self.id);
         }
+    }
+
+    pub fn set_mvp_matrix(&self, mvp_matrix: &Matrix4<GLfloat>) -> Result<(), ShaderProgramError> {
+        unsafe {
+            gl::UniformMatrix4fv(self.mvp_handle, 1, gl::FALSE, mvp_matrix.as_array().as_ptr() as * const GLfloat);
+        }
+        check_opengl_error("gl::UniformMatrix4fv")?;
+        Ok(())
     }
 }
 
