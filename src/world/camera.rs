@@ -27,7 +27,6 @@ impl Camera {
             self.model.get_position(),
             self.model.get_position().add(direction),
             Vector3::<f32>::new(0., 0., 1.));
-                
     }
 
     fn update_projection(&mut self) {
@@ -36,6 +35,7 @@ impl Camera {
             self.aspect_ratio,
             self.near,
             self.far);
+        info!("projection update: fov = {}, aspect ratio = {}, near = {}, far = {}", self.fov, self.aspect_ratio, self.near, self.far);
     }
 
 }
@@ -51,7 +51,8 @@ impl Default for Camera {
             view: Matrix4::<GLfloat>::one(),
             projection: Matrix4::<GLfloat>::one()
         };
-        camera.update_view();
+        camera.mod_position(Vector3::new(0., 0., 5.));
+        camera.set_rotation(Vector3::new(0., 180f32.to_radians(), 0.));
         camera.update_projection();
         camera
     }
@@ -69,7 +70,21 @@ impl Positionable for Camera {
 
 impl Rotatable for Camera {
     fn set_rotation(&mut self, new_rotation: Vector3<f32>) {
-        self.model.set_rotation(new_rotation);
+        const MAX_Y: f32 = std::f32::consts::PI - 0.01;
+        const MIN_Y: f32 = 0.01;
+        const DOUBLE_PI: f32 = 2. * std::f32::consts::PI;
+        let mut fixed_rotation = new_rotation;
+        if fixed_rotation.x >= DOUBLE_PI {
+            fixed_rotation.x -= DOUBLE_PI;
+        } else if fixed_rotation.x < 0. {
+            fixed_rotation.x += DOUBLE_PI;
+        }
+        if fixed_rotation.y > MAX_Y {
+                fixed_rotation.y = MAX_Y;
+        } else if fixed_rotation.y < MIN_Y {
+            fixed_rotation.y = MIN_Y;
+        }
+        self.model.set_rotation(fixed_rotation);
         self.update_view();
     }
     fn get_rotation(&self) -> Vector3<f32> {

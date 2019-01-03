@@ -1,11 +1,13 @@
 use std::{ thread, time, ops::{ Add, Sub } };
 
 use glutin;
+use gl;
 
 use super::ApplicationError;
 use super::window;
 use graphics;
 use world;
+use world::Updatable;
 
 pub struct Application {
     events_loop: glutin::EventsLoop,
@@ -43,6 +45,7 @@ impl Application {
         let mut last_time = time::Instant::now();
         while !self.quit {
             self.handle_events();
+            self.world.tick(self.time_passed);
             self.render()?;
             self.time_passed = last_time.elapsed().as_secs() as u32 * 1000 + last_time.elapsed().subsec_millis();
             last_time = time::Instant::now();
@@ -86,6 +89,7 @@ impl Application {
     }
 
     fn render(&mut self) -> Result<(), graphics::GraphicsError> {
+        unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) }        
         self.world.render(&self.shader_program)?;
         self.window.swap_buffers()?;
         Ok(())

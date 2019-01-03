@@ -1,6 +1,8 @@
+use glm::Vector3;
+
 use application::ApplicationError;
 use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, Mesh, GraphicsError, mesh::create_plane };
-use super::{ Camera, Object, Updatable, Renderable };
+use super::{ Camera, Object, Updatable, Renderable, Positionable, Rotatable };
 
 pub struct World {
     texture_array: TextureArray,
@@ -30,6 +32,6 @@ impl World {
 
 impl Updatable for World {
     fn tick(&mut self, time_passed: u32) {
-
+        self.camera.mod_position(Vector3::new(0., 0., 0.25));
     }
 }
