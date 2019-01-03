@@ -1,4 +1,4 @@
 
 pub trait Updatable {
-    fn tick(&mut self, last_tick: u32);
+    fn tick(&mut self, time_passed: u32);
 }

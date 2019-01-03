@@ -11,3 +11,5 @@ pub mod application;
 mod graphics;
 mod world;
 mod utility;
+
+pub use application::Application;

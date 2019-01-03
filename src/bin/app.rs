@@ -14,9 +14,15 @@ fn main() {
 
     init_custom_logger();
 
-    let result = dwarfs::application::run(WINDOW_SIZE);
-    match result {
-        Ok(_) =>  info!("Application exited sucessfully"),
+    let app = match dwarfs::Application::new(WINDOW_SIZE) {
+        Ok(app) => app,
+        Err(e) => {
+            error!("{}", e);
+            return;
+        }
+    };
+    match app.run() {
+        Ok(_) => info!("Application exited successfully"),
         Err(e) => error!("{}", e)
     }
 }

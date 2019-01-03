@@ -1,5 +1,5 @@
 use application::ApplicationError;
-use graphics::{ ShaderProgram, TextureArray, Mesh, GraphicsError, mesh::create_plane };
+use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, Mesh, GraphicsError, mesh::create_plane };
 use super::{ Camera, Object, Updatable, Renderable };
 
 pub struct World {
@@ -9,7 +9,11 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(texture_array: TextureArray) -> Result<World, ApplicationError> {
+    pub fn new() -> Result<World, ApplicationError> {
+        let texture_array = TextureArrayBuilder::new("resources/tex.png", (64, 64))
+            .add_texture((0, 0))
+            .add_texture((64, 0))
+            .finish()?;
         let world = World {
             texture_array: texture_array,
             camera: Camera::default(),
@@ -24,9 +28,8 @@ impl World {
     }
 }
 
-
 impl Updatable for World {
-    fn tick(&mut self, last_tick: u32) {
+    fn tick(&mut self, time_passed: u32) {
 
     }
 }
