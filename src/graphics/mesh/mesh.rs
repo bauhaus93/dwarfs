@@ -3,7 +3,7 @@ use gl;
 use gl::types::{ GLuint };
 
 use graphics::{ check_opengl_error, GraphicsError };
-use super::{ Triangle, Vertex };
+use super::{ Triangle };
 
 pub struct Mesh {
     vao: GLuint,

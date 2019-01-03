@@ -1,6 +1,4 @@
-use glm::{ Matrix4, Vector3 };
-use gl::types::GLfloat;
-use num_traits::One;
+use glm::{ Vector3 };
 
 use graphics::{ Mesh, ShaderProgram, GraphicsError };
 use super::{ Camera, Model, Positionable, Rotatable, Renderable };

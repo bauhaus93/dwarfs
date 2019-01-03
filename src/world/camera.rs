@@ -4,38 +4,39 @@ use glm::ext::{ look_at, perspective };
 use gl::types::GLfloat;
 use num_traits::One;
 
-use super::{ Model, Positionable, Rotatable, create_direction };
+use super::{ Model, Positionable, Rotatable, Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix };
 
 pub struct Camera {
     model: Model,
-    fov: f32,
-    aspect_ratio: f32,
-    near: f32,
-    far: f32,
-    view: Matrix4<GLfloat>,
-    projection: Matrix4<GLfloat>
+    projection: Projection,
+    view_matrix: Matrix4<GLfloat>,
+    projection_matrix: Matrix4<GLfloat>
 }
 
 impl Camera {
      pub fn create_mvp_matrix(&self, model: &Model) -> Matrix4<GLfloat> {
-        self.projection * self.view * model.get_matrix()
+        self.projection_matrix * self.view_matrix * model.get_matrix()
     }
 
     fn update_view(&mut self) {
         let direction = create_direction(self.model.get_rotation());
-        self.view = look_at(
+        self.view_matrix = look_at(
             self.model.get_position(),
             self.model.get_position().add(direction),
             Vector3::<f32>::new(0., 0., 1.));
     }
 
     fn update_projection(&mut self) {
-        self.projection = perspective(
-            self.fov.to_radians(),
-            self.aspect_ratio,
-            self.near,
-            self.far);
-        info!("projection update: fov = {}, aspect ratio = {}, near = {}, far = {}", self.fov, self.aspect_ratio, self.near, self.far);
+        self.projection_matrix = match self.projection {
+            Projection::Perspective { fov, aspect_ratio, near, far } => {
+                info!("projection update: perspective, fov = {}, aspect ration = {}, near = {}, far = {}", fov, aspect_ratio, near, far);
+                perspective(fov, aspect_ratio, near, far)
+            },
+            Projection::Orthographic { left, right, top, bottom, near, far } => {
+                info!("projection update: orthographic, left = {}, right = {}, top = {}, bottom = {}, near = {}, far = {}", left, right, top, bottom, near, far);
+                create_orthographic_projection_matrix(left, right, top, bottom, near, far)
+            }
+        }
     }
 
 }
@@ -44,15 +45,12 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            fov: 75.0,
-            aspect_ratio: 4.0 / 3.0,
-            near: 0.5,
-            far: 100.0,
-            view: Matrix4::<GLfloat>::one(),
-            projection: Matrix4::<GLfloat>::one()
+            projection: create_orthographic_projection(10.),
+            view_matrix: Matrix4::<GLfloat>::one(),
+            projection_matrix: Matrix4::<GLfloat>::one()
         };
-        camera.mod_position(Vector3::new(0., 0., 5.));
-        camera.set_rotation(Vector3::new(0., 180f32.to_radians(), 0.));
+        camera.mod_position(Vector3::new(0., 0., 1.));
+        camera.set_rotation(Vector3::new(45f32.to_radians(), 135f32.to_radians(), 0.));
         camera.update_projection();
         camera
     }
