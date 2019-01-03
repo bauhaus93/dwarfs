@@ -116,7 +116,7 @@ impl Resources {
         unsafe { gl::GetProgramiv(self.program_id, gl::LINK_STATUS, &mut success); }
         check_opengl_error("gl::GetProgramiv")?;
         if success == 0 {
-            return Err(GraphicsError::from(ShaderProgramError::Linkage(self.program_id)));
+            return Err(GraphicsError::from(ShaderProgramError::Linkage(get_program_log(self.program_id))));
         }
         Ok(())
     }
@@ -237,3 +237,22 @@ fn get_shader_log(shader_id: GLuint) -> String {
     }
 }
 
+fn get_program_log(program_id: GLuint) -> String {
+    trace!("getting program log");
+    let mut log_len: GLint = 0;
+    let mut bytes_written: GLint = 0;
+    let mut log_vec: Vec<u8> = Vec::new();
+    unsafe {
+        gl::GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut log_len);
+        log_vec.reserve(log_len as usize);
+        trace!("allocated log size: {}", log_vec.capacity()); 
+        gl::GetProgramInfoLog(program_id, log_vec.capacity() as i32, &mut bytes_written, log_vec.as_mut_ptr() as *mut _);
+        log_vec.set_len(bytes_written as usize);
+        trace!("log bytes written: {}", bytes_written);
+    };
+    match String::from_utf8(log_vec) {
+        Ok(ref s) if s.len() == 0 => "EMPTY_LOG".to_string(),
+        Ok(s) => s,
+        Err(_) => "couldn't convert shader program log".to_string()
+    }
+}
