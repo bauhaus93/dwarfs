@@ -35,7 +35,7 @@ impl Application {
             world: world,
             quit: false,
             time_passed: 0,
-            sleep_time: time::Duration::from_millis(100)
+            sleep_time: time::Duration::from_millis(50)
         };
         Ok(app)
     }
@@ -79,7 +79,7 @@ impl Application {
         const TARGET_FREQ: u32 = 30;
         let diff: i32 = (self.time_passed * TARGET_FREQ) as i32 - 1000;
         if diff.abs() as u32 > TARGET_FREQ {
-            let adj = time::Duration::from_millis(std::cmp::min(std::cmp::max(diff.abs() as u64 / 100, 1), 5));
+            let adj = time::Duration::from_millis(std::cmp::min(std::cmp::max(diff.abs() as u64 / 100, 1), 20));
             match diff.signum() {
                 1 => self.sleep_time = self.sleep_time.sub(adj),
                 -1 => self.sleep_time = self.sleep_time.add(adj),
