@@ -12,9 +12,8 @@ pub struct World {
 
 impl World {
     pub fn new() -> Result<World, ApplicationError> {
-        let texture_array = TextureArrayBuilder::new("resources/tex.png", (64, 64))
+        let texture_array = TextureArrayBuilder::new("resources/tex.png", (256, 256))
             .add_texture((0, 0))
-            .add_texture((64, 0))
             .finish()?;
         let world = World {
             texture_array: texture_array,
@@ -25,7 +24,9 @@ impl World {
     }
 
     pub fn render(&mut self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
+        self.texture_array.activate();
         self.plane.render(&self.camera, shader)?;
+        self.texture_array.deactivate();
         Ok(())
     }
 }

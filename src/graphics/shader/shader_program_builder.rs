@@ -170,7 +170,7 @@ fn compile_shader(shader: &Shader) -> Result<GLuint, ShaderError> {
         let mut success: GLint = 0;
         gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
         if success == 0 {
-            let err = Err(ShaderError::Compilation(id));
+            let err = Err(ShaderError::Compilation(get_shader_log(id)));
             gl::DeleteShader(id);
             return err;
         }        
@@ -216,3 +216,24 @@ fn detach_attached_shaders(program_id: GLuint) {
         }
     }
 }
+
+fn get_shader_log(shader_id: GLuint) -> String {
+    trace!("getting shader log for shader id = {}", shader_id);
+    let mut log_len: GLint = 0;
+    let mut bytes_written: GLint = 0;
+    let mut log_vec: Vec<u8> = Vec::new();
+    unsafe {
+        gl::GetShaderiv(shader_id, gl::INFO_LOG_LENGTH, &mut log_len);
+        log_vec.reserve(log_len as usize);
+        trace!("allocated log size: {}", log_vec.capacity()); 
+        gl::GetShaderInfoLog(shader_id, log_vec.capacity() as i32, &mut bytes_written, log_vec.as_mut_ptr() as *mut _);
+        log_vec.set_len(bytes_written as usize);
+        trace!("log bytes written: {}", bytes_written);
+    };
+    match String::from_utf8(log_vec) {
+        Ok(ref s) if s.len() == 0 => "EMPTY_LOG".to_string(),
+        Ok(s) => s,
+        Err(_) => "couldn't convert shader log".to_string()
+    }
+}
+

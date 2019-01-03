@@ -10,7 +10,7 @@ use graphics::OpenglError;
 pub enum ShaderError {
     IO(io::Error),
     UnknownShaderType(GLuint),
-    Compilation(GLuint),
+    Compilation(String),
     Opengl(OpenglError),
     FunctionFailure(String)
 }
@@ -55,29 +55,11 @@ impl fmt::Display for ShaderError {
         match *self {
             ShaderError::IO(ref err) => write!(f, "{}: {}", self.description(), err),
             ShaderError::UnknownShaderType(type_id) => write!(f, "{}: type id is {}", self.description(), type_id),
-            ShaderError::Compilation(shader_id) => write!(f, "{}: {}", self.description(), get_shader_log(shader_id)),
+            ShaderError::Compilation(ref shader_log) => write!(f, "{}: {}", self.description(), shader_log),
             ShaderError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err),
             ShaderError::FunctionFailure(ref func_name) => write!(f, "{} @ {}", self.description(), func_name)
         }
     }
 }
 
-fn get_shader_log(shader_id: GLuint) -> String {
-    trace!("getting shader log");
-    let mut log_len: GLint = 0;
-    let mut bytes_written: GLint = 0;
-    let mut log_vec: Vec<u8> = Vec::new();
-    unsafe {
-        gl::GetShaderiv(shader_id, gl::INFO_LOG_LENGTH, &mut log_len);
-        log_vec.reserve(log_len as usize);
-        trace!("allocated log size: {}", log_vec.capacity()); 
-        gl::GetShaderInfoLog(shader_id, log_vec.capacity() as i32, &mut bytes_written, log_vec.as_mut_ptr() as *mut _);
-        log_vec.set_len(bytes_written as usize);
-        trace!("log bytes written: {}", bytes_written);
-    };
-    match String::from_utf8(log_vec) {
-        Ok(s) => s,
-        Err(_) => "couldn't convert shader log".to_string()
-    }
-}
 

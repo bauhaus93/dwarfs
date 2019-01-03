@@ -7,26 +7,23 @@ use graphics::{ check_opengl_error };
 
 pub struct ShaderProgram {
     id: GLuint, 
-    mvp_handle: GLint
+    mvp_handle: GLint,
+    texture_array_handle: GLint
 }
 
 impl ShaderProgram {
     
     pub fn new(program_id: GLuint) -> Result<ShaderProgram, ShaderProgramError> {
         debug_assert!(program_id != 0);
-        let mvp_handle = match get_resource_handle(program_id, "MVP") {
-            Ok(h) => h,
-            Err(e) => {
-                unsafe {
-                    gl::DeleteProgram(program_id);
-                }
-                return Err(e);
-            }
-        };
-        Ok(ShaderProgram {
+        let program = Self {
             id: program_id,
-            mvp_handle: mvp_handle
-        })
+            mvp_handle: get_resource_handle(program_id, "MVP")?,
+            texture_array_handle: get_resource_handle(program_id, "textureArray")?
+        };
+        program.use_program();
+        unsafe { gl::Uniform1i(program.texture_array_handle, 0) }
+        check_opengl_error("gl::Uniform1i")?;
+        Ok(program)
     }
 
     pub fn use_program(&self) {

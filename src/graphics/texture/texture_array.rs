@@ -16,6 +16,16 @@ impl TextureArray {
             size: size
         }
     }
+    pub fn activate(&self) {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindTexture(gl::TEXTURE_2D_ARRAY, self.texture_id);
+        }
+    }
+
+    pub fn deactivate(&self) {
+        unsafe { gl::BindTexture(gl::TEXTURE_2D_ARRAY, 0) }
+    }
 }
 
 impl Drop for TextureArray {
