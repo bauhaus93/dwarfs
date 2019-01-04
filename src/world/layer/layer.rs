@@ -25,7 +25,6 @@ impl Layer {
         let mesh = create_mesh(&fields)?;
         let mut object = Object::new(mesh);
         object.set_position(Vector3::new(0., 0., level as f32));
-        //object.set_scale(Vector3::new(1., 1., 2.));
         Ok(Self {
             object: object,
             fields: fields
@@ -48,10 +47,12 @@ fn create_mesh(fields: &HashMap<(u32, u32), Field>) -> Result<Mesh, GraphicsErro
         let mut right_quad = Quad::default();
         right_quad.rotate(Vector3::new(90f32.to_radians() as GLfloat, 0., 0.));
         right_quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat - 0.5, 0.));
+        right_quad.cycle_uvs(1);
         builder = builder.add_quad(right_quad);
         let mut left_quad = Quad::default();
         left_quad.rotate(Vector3::new(0., -90f32.to_radians() as GLfloat, 0.));
         left_quad.translate(Vector3::new(pos.0 as GLfloat - 0.5, pos.1 as GLfloat, 0.));
+        left_quad.cycle_uvs(2);
         builder = builder.add_quad(left_quad);
         
     }

@@ -3,7 +3,7 @@ use gl::types::GLfloat;
 
 use application::ApplicationError;
 use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use world::{ Camera, Layer, traits::{ Translatable, Updatable, Renderable } };
+use world::{ Camera, Layer, traits::{ Translatable, Rotatable, Updatable, Renderable } };
 
 pub struct World {
     texture_array: TextureArray,
@@ -13,7 +13,7 @@ pub struct World {
 
 impl World {
     pub fn new() -> Result<World, ApplicationError> {
-        let texture_array = TextureArrayBuilder::new("resources/tex.png", (256, 256))
+        let texture_array = TextureArrayBuilder::new("resources/atlas.png", (64, 64))
             .add_texture((0, 0))
             .finish()?;
         let world = World {
@@ -38,7 +38,5 @@ impl World {
 
 impl Updatable for World {
     fn tick(&mut self, time_passed: u32) {
-        //self.quad.mod_rotation(Vector3::new(0., 0., 0.1));
-        // self.camera.mod_position(Vector3::new(0., 0., 0.5));
     }
 }

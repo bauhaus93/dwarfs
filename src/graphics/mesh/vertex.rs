@@ -34,6 +34,10 @@ impl Vertex {
         self.normal = new_normal;
     }
 
+    pub fn set_uv_layer(&mut self, layer: u32) {
+        self.uv.z = layer as GLfloat;
+    }
+
     pub fn translate(&mut self, translation: Vector3<GLfloat>) {
         self.pos = self.pos.add(translation);
     }

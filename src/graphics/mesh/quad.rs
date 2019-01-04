@@ -40,6 +40,22 @@ impl Quad {
         }
     }
     
+    pub fn cycle_uvs(&mut self, cycles: u8) {
+        let mut new_uvs: Vec<Vector3<GLfloat>> = Vec::new();
+        for v in self.vertices.iter().cycle().skip(cycles as usize).take(4) {
+            new_uvs.push(v.get_uv());
+        }
+        for (vert, uv) in self.vertices.iter_mut().zip(new_uvs.into_iter()) {
+            vert.set_uv(uv)
+        }
+    }
+
+    pub fn set_uv_layer(&mut self, layer: u32) {
+        for v in self.vertices.iter_mut() {
+            v.set_uv_layer(layer);
+        }
+    }
+    
     pub fn to_triangles(&self) -> [Triangle; 2] {
         [Triangle::new([self.vertices[0].clone(), self.vertices[1].clone(), self.vertices[2].clone()]),
          Triangle::new([self.vertices[2].clone(), self.vertices[3].clone(), self.vertices[0].clone()])]

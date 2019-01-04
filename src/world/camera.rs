@@ -46,12 +46,12 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: create_orthographic_projection(5., 10.), //Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
+            projection: create_orthographic_projection(10., 30.), //Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };
         camera.mod_position(Vector3::new(0., 0., 1.));
-        camera.set_rotation(Vector3::new(45f32.to_radians(), 135f32.to_radians(), 0.));
+        camera.set_rotation(Vector3::new(45f32.to_radians(), 125f32.to_radians(), 0.));
         camera.update_projection();
         camera
     }
