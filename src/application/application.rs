@@ -2,6 +2,7 @@ use std::{ thread, time, ops::{ Add, Sub } };
 
 use glutin;
 use gl;
+use gl::types::GLsizei;
 
 use super::ApplicationError;
 use super::window;
@@ -27,6 +28,7 @@ impl Application {
             .add_vertex_shader("resources/shader/VertexShader.glsl")
             .add_fragment_shader("resources/shader/FragmentShader.glsl")
             .finish()?;
+        
         let world = world::World::new()?;
         let app = Self {
             events_loop: events_loop,
@@ -68,12 +70,24 @@ impl Application {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
                     glutin::WindowEvent::CloseRequested => { self.quit = true; },
+                    glutin::WindowEvent::Resized(logical_size) => { self.handle_resize((logical_size.width as GLsizei, logical_size.height as GLsizei)); },
                     glutin::WindowEvent::KeyboardInput { input, .. } => { self.handle_keyboard_input(input) },
                     _ => {}
                 }
             },
             _ => {}
         }
+    }
+
+    fn handle_resize(&self, new_size: (GLsizei, GLsizei)) {
+        unsafe {
+            //gl::Viewport(0, 0, new_size.0, new_size.1);
+        }
+        info!("NOT! Updated viewport to {}/{}/{}/{}", 0, 0, new_size.0, new_size.1);
+        match graphics::check_opengl_error("gl::Viewport") {
+            Ok(_) => {},
+            Err(e) => { warn!("{}", e); }
+        } 
     }
 
     fn handle_keyboard_input(&mut self, input: glutin::KeyboardInput) {

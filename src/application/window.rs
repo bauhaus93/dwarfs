@@ -19,6 +19,14 @@ pub fn init_window(window_size: (f64, f64), events_loop: &glutin::EventsLoop) ->
         window.make_current()?;
     }
     window.show();
+    unsafe {
+        gl::Enable(gl::DEPTH_TEST);
+        gl::DepthFunc(gl::LESS);
+        gl::Enable(gl::CULL_FACE);      //Default is front = CCW, cull back
+        gl::ClearDepth(1.);
+    }
+    graphics::check_opengl_error("gl setup")?;
+
 
     match graphics::get_opengl_version() {
         Ok(version) => { info!("opengl version: {}", version) },
