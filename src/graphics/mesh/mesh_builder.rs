@@ -4,7 +4,7 @@ use std::ptr;
 use gl;
 use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
 
-use graphics::{ OpenglError, check_opengl_error };
+use graphics::{ OpenglError, check_opengl_error, GraphicsError };
 use super::{ Vertex, Triangle, Quad, Mesh };
 
 pub struct MeshBuilder { 
@@ -47,9 +47,9 @@ impl MeshBuilder {
                     debug_assert!(self.uv_buffer.len() % 3 == 0);
                     debug_assert!(self.normal_buffer.len() % 3 == 0);
                     let new_index = (self.position_buffer.len() / 3) as GLuint;
-                    self.position_buffer.extend(vert.get_pos());
-                    self.uv_buffer.extend(vert.get_uv());
-                    self.normal_buffer.extend(vert.get_normal());
+                    self.position_buffer.extend(vert.get_pos().as_array());
+                    self.uv_buffer.extend(vert.get_uv().as_array());
+                    self.normal_buffer.extend(vert.get_normal().as_array());
                     self.index_buffer.push(new_index);
                     Some((vert.clone(), new_index))
                 }
@@ -61,13 +61,13 @@ impl MeshBuilder {
         }
     }
 
-    pub fn finish(self) -> Result<Mesh, OpenglError> {
+    pub fn finish(self) -> Result<Mesh, GraphicsError> {
         let vbos = self.load_vbos()?;
         let vao = match self.load_vao(&vbos) {
             Ok(vao) => vao,
             Err(e) => {
                 delete_buffers(vbos);
-                return Err(e);
+                return Err(GraphicsError::from(e));
             }
         };
         let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint, self.triangles);

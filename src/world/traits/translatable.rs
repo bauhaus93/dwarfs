@@ -1,7 +1,7 @@
 use std::ops::Add;
 use glm::Vector3;
 
-pub trait Positionable {
+pub trait Translatable {
     fn set_position(&mut self, new_position: Vector3<f32>);
     fn get_position(&self) -> Vector3<f32>;
     fn mod_position(&mut self, offset: Vector3<f32>) {

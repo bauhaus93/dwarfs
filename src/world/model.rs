@@ -5,8 +5,8 @@ use glm::GenNum;
 use num_traits::One;
 use glm::{ Vector3, Matrix4 };
 
-use super::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix };
-use super::{ Positionable, Rotatable, Scalable };
+use graphics::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix };
+use world::traits::{ Translatable, Rotatable, Scalable };
 
 pub struct Model {
     position: Vector3<f32>,
@@ -47,7 +47,7 @@ impl fmt::Display for Model {
     }
 }
 
-impl Positionable for Model {
+impl Translatable for Model {
      fn set_position(&mut self, new_position: Vector3<f32>) {
         self.position = new_position;
         self.update_matrix();

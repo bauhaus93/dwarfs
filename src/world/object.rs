@@ -1,7 +1,7 @@
 use glm::{ Vector3 };
 
 use graphics::{ Mesh, ShaderProgram, GraphicsError };
-use super::{ Camera, Model, Positionable, Rotatable, Scalable, Renderable };
+use world::{ Camera, Model, traits::{ Translatable, Rotatable, Scalable, Renderable } };
 
 pub struct Object {
     model: Model,
@@ -26,7 +26,7 @@ impl Renderable for Object {
     }
 }
 
-impl Positionable for Object {
+impl Translatable for Object {
     fn set_position(&mut self, new_position: Vector3<f32>) {
         self.model.set_position(new_position);
     }

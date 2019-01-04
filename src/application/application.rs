@@ -7,7 +7,7 @@ use super::ApplicationError;
 use super::window;
 use graphics;
 use world;
-use world::Updatable;
+use world::traits::Updatable;
 
 pub struct Application {
     events_loop: glutin::EventsLoop,
@@ -67,7 +67,8 @@ impl Application {
         match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
-                    glutin::WindowEvent::CloseRequested => { self.quit = true; }
+                    glutin::WindowEvent::CloseRequested => { self.quit = true; },
+                    glutin::WindowEvent::KeyboardInput { input, .. } => { self.handle_keyboard_input(input) },
                     _ => {}
                 }
             },
@@ -75,11 +76,28 @@ impl Application {
         }
     }
 
+    fn handle_keyboard_input(&mut self, input: glutin::KeyboardInput) {
+        match (input.virtual_keycode, input.state) {
+            (Some(keycode), glutin::ElementState::Pressed) => {
+                match keycode {
+                    glutin::VirtualKeyCode::A => self.world.move_camera([-1., 1., 0.]),
+                    glutin::VirtualKeyCode::D => self.world.move_camera([1., -1., 0.]),
+                    glutin::VirtualKeyCode::W => self.world.move_camera([1., 1., 0.]),
+                    glutin::VirtualKeyCode::S => self.world.move_camera([-1., -1., 0.]),
+                    glutin::VirtualKeyCode::R => self.world.move_camera([0., 0., 1.]),
+                    glutin::VirtualKeyCode::F => self.world.move_camera([0., 0., -1.]),
+                    _ => {}
+                }
+            },
+            (_, _) => {}
+        }
+    }
+
     fn handle_sleep_time(&mut self) {
         const TARGET_FREQ: u32 = 30;
         let diff: i32 = (self.time_passed * TARGET_FREQ) as i32 - 1000;
         if diff.abs() as u32 > TARGET_FREQ {
-            let adj = time::Duration::from_millis(std::cmp::min(std::cmp::max(diff.abs() as u64 / 100, 1), 20));
+            let adj = time::Duration::from_millis(std::cmp::min(std::cmp::max(diff.abs() as u64 / 100, 1), self.sleep_time.subsec_millis() as u64));
             match diff.signum() {
                 1 => self.sleep_time = self.sleep_time.sub(adj),
                 -1 => self.sleep_time = self.sleep_time.add(adj),

@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
+use gl::types::GLfloat;
 use glm::Vector3;
 
 use application::ApplicationError;
 use graphics::{ Mesh, MeshBuilder, ShaderProgram, GraphicsError };
-use graphics::mesh::{ Quad, Vertex };
-use world::{ Camera, Object, Renderable, Positionable };
+use graphics::mesh::{ Quad };
+use world::{ Camera, Object, traits::{ Renderable, Translatable } };
 use super::Field;
 
 pub struct Layer {
@@ -39,9 +40,11 @@ impl Renderable for Layer {
 
 fn create_mesh(fields: &HashMap<(u32, u32), Field>) -> Result<Mesh, GraphicsError> {
     let mut builder = MeshBuilder::new();
-    for (pos, field) in fields {
-        let quad = Quad::default();          
-        
+    for (pos, field) in fields {        
+        let mut quad = Quad::default();
+        //quad.rotate(Vector3::new(45f32.to_radians() as GLfloat, 0., 0.)); 
+        quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat, 0.));
+        builder = builder.add_quad(quad);
     }
     Ok(builder.finish()?)
 }

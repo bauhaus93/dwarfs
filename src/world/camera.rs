@@ -4,7 +4,8 @@ use glm::ext::{ look_at, perspective };
 use gl::types::GLfloat;
 use num_traits::One;
 
-use super::{ Model, Positionable, Rotatable, Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix };
+use graphics::{ Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix };
+use world::{ Model, traits::{ Translatable, Rotatable } };
 
 pub struct Camera {
     model: Model,
@@ -45,7 +46,7 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: create_orthographic_projection(5.),
+            projection: create_orthographic_projection(5., 20.),
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };
@@ -56,7 +57,7 @@ impl Default for Camera {
     }
 }
 
-impl Positionable for Camera {
+impl Translatable for Camera {
     fn set_position(&mut self, new_position: Vector3<f32>) {
         self.model.set_position(new_position);
         self.update_view();

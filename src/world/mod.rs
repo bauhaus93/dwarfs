@@ -1,25 +1,12 @@
 pub mod world;
+pub mod traits;
 mod model;
 mod camera;
 mod object;
 mod layer;
-mod projection;
-mod positionable;
-mod rotatable;
-mod scalable;
-mod renderable;
-mod updatable;
-mod transformation;
 
 pub use self::world::World;
 pub use self::model::Model;
 pub use self::camera::Camera;
 pub use self::object::Object;
 pub use self::layer::Layer;
-pub use self::projection::{ Projection, create_orthographic_projection };
-pub use self::positionable::Positionable;
-pub use self::rotatable::Rotatable;
-pub use self::scalable::Scalable;
-pub use self::renderable::Renderable;
-pub use self::updatable::Updatable;
-pub use self::transformation::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix, create_direction, create_orthographic_projection_matrix };

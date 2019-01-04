@@ -1,8 +1,9 @@
 use glm::Vector3;
+use gl::types::GLfloat;
 
 use application::ApplicationError;
 use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use super::{ Camera, Layer, Updatable, Renderable, Positionable, Rotatable };
+use world::{ Camera, Layer, traits::{ Translatable, Updatable, Renderable } };
 
 pub struct World {
     texture_array: TextureArray,
@@ -23,6 +24,10 @@ impl World {
         Ok(world)
     }
 
+    pub fn move_camera(&mut self, offset: [f32; 3]) {
+        self.camera.mod_position(Vector3::<GLfloat>::new(offset[0], offset[1], offset[2]));
+    }
+
     pub fn render(&mut self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
         self.texture_array.activate();
         self.layer.render(&self.camera, shader)?;
@@ -33,7 +38,7 @@ impl World {
 
 impl Updatable for World {
     fn tick(&mut self, time_passed: u32) {
-        //self.plane.mod_rotation(Vector3::new(0., 0., 0.1));
+        //self.quad.mod_rotation(Vector3::new(0., 0., 0.1));
         // self.camera.mod_position(Vector3::new(0., 0., 0.5));
     }
 }
