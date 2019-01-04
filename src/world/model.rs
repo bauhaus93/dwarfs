@@ -5,19 +5,21 @@ use glm::GenNum;
 use num_traits::One;
 use glm::{ Vector3, Matrix4 };
 
-use super::{ create_translation_matrix, create_rotation_matrix };
-use super::{ Positionable, Rotatable };
+use super::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix };
+use super::{ Positionable, Rotatable, Scalable };
 
 pub struct Model {
     position: Vector3<f32>,
     rotation: Vector3<f32>,
+    scale: Vector3<f32>,
     matrix: glm::Matrix4<GLfloat>
 }
 
 impl Model {
     fn update_matrix(&mut self) {
         self.matrix = create_translation_matrix(self.position.clone()) *
-                      create_rotation_matrix(self.rotation.clone()) * Matrix4::<GLfloat>::one();
+                      create_rotation_matrix(self.rotation.clone()) *
+                      create_scale_matrix(self.scale.clone());
     }
     pub fn get_matrix(&self) -> Matrix4<GLfloat> {
         self.matrix.clone()
@@ -29,6 +31,7 @@ impl Default for Model {
         let mut model = Self {
             position: Vector3::<f32>::from_s(0.),
             rotation: Vector3::<f32>::from_s(0.),
+            scale: Vector3::<f32>::from_s(1.),
             matrix: Matrix4::<GLfloat>::one()
         };
         model.update_matrix();
@@ -61,5 +64,15 @@ impl Rotatable for Model {
     }
     fn get_rotation(&self) -> Vector3<f32> {
         self.rotation.clone()
+    }
+}
+
+impl Scalable for Model {
+     fn set_scale(&mut self, new_scale: Vector3<f32>) {
+        self.scale = new_scale;
+        self.update_matrix();
+    }
+    fn get_scale(&self) -> Vector3<f32> {
+        self.scale.clone()
     }
 }

@@ -1,7 +1,7 @@
 use glm::{ Vector3 };
 
 use graphics::{ Mesh, ShaderProgram, GraphicsError };
-use super::{ Camera, Model, Positionable, Rotatable, Renderable };
+use super::{ Camera, Model, Positionable, Rotatable, Scalable, Renderable };
 
 pub struct Object {
     model: Model,
@@ -41,5 +41,14 @@ impl Rotatable for Object {
     }
     fn get_rotation(&self) -> Vector3<f32> {
         self.model.get_rotation()
+    }
+}
+
+impl Scalable for Object {
+    fn set_scale(&mut self, new_scale: Vector3<f32>) {
+        self.model.set_scale(new_scale);
+    }
+    fn get_scale(&self) -> Vector3<f32> {
+        self.model.get_scale()
     }
 }
