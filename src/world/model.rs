@@ -59,7 +59,15 @@ impl Translatable for Model {
 
 impl Rotatable for Model {
     fn set_rotation(&mut self, new_rotation: Vector3<f32>) {
+        const DOUBLE_PI: f32 = std::f32::consts::PI * 2.;
         self.rotation = new_rotation;
+        for value in self.rotation.as_array_mut().iter_mut() {
+            if *value >= DOUBLE_PI {
+                *value -= DOUBLE_PI;
+            } else if *value < 0. {
+                *value += DOUBLE_PI;
+            }
+        }
         self.update_matrix();
     }
     fn get_rotation(&self) -> Vector3<f32> {
@@ -69,7 +77,13 @@ impl Rotatable for Model {
 
 impl Scalable for Model {
      fn set_scale(&mut self, new_scale: Vector3<f32>) {
+        const MIN_SCALE: f32 = 1e-3;
         self.scale = new_scale;
+        for value in self.scale.as_array_mut().iter_mut() {
+            if *value < MIN_SCALE {
+                *value = MIN_SCALE;
+            }
+        }
         self.update_matrix();
     }
     fn get_scale(&self) -> Vector3<f32> {
