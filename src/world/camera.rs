@@ -30,7 +30,7 @@ impl Camera {
     fn update_projection(&mut self) {
         self.projection_matrix = match self.projection {
             Projection::Perspective { fov, aspect_ratio, near, far } => {
-                info!("projection update: perspective, fov = {}, aspect ration = {}, near = {}, far = {}", fov, aspect_ratio, near, far);
+                info!("projection update: perspective, fov = {}, aspect ration = {}, near = {}, far = {}", fov.to_degrees(), aspect_ratio, near, far);
                 perspective(fov, aspect_ratio, near, far)
             },
             Projection::Orthographic { left, right, top, bottom, near, far } => {
@@ -46,7 +46,7 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: create_orthographic_projection(10., 30.), //Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
+            projection: Projection::Orthographic { left: 0., right: 8., top: 6., bottom: 0., near: -20., far: 20. },// Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };

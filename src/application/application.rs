@@ -70,7 +70,7 @@ impl Application {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
                     glutin::WindowEvent::CloseRequested => { self.quit = true; },
-                    glutin::WindowEvent::Resized(logical_size) => { self.handle_resize((logical_size.width as GLsizei, logical_size.height as GLsizei)); },
+                    glutin::WindowEvent::Resized(logical_size) => { self.handle_resize(logical_size.into()); },
                     glutin::WindowEvent::KeyboardInput { input, .. } => { self.handle_keyboard_input(input) },
                     _ => {}
                 }
@@ -79,11 +79,11 @@ impl Application {
         }
     }
 
-    fn handle_resize(&self, new_size: (GLsizei, GLsizei)) {
+    fn handle_resize(&self, new_size: (u32, u32)) {
         unsafe {
-            //gl::Viewport(0, 0, new_size.0, new_size.1);
+            gl::Viewport(0, 0, new_size.0 as GLsizei, new_size.1 as GLsizei);
         }
-        info!("NOT! Updated viewport to {}/{}/{}/{}", 0, 0, new_size.0, new_size.1);
+        info!("Updated viewport to {}/{}/{}/{}", 0, 0, new_size.0, new_size.1);
         match graphics::check_opengl_error("gl::Viewport") {
             Ok(_) => {},
             Err(e) => { warn!("{}", e); }
