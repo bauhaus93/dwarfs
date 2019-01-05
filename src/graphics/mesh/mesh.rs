@@ -13,15 +13,20 @@ pub struct Mesh {
 }
 
 impl Mesh {
-    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint, triangles: Vec<Triangle>) -> Self {
+    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint, mut triangles: Vec<Triangle>) -> Self {
         debug_assert!(vao != 0);
         debug_assert!(vbos.iter().all(|v| *v != 0));
+        triangles.shrink_to_fit();
         Self {
             vao: vao,
             vbos: vbos,
             index_count: index_count,
             triangles: triangles
         }
+    }
+
+    pub fn get_triangle_count(&self) -> u32 {
+        self.index_count as u32
     }
 
     pub fn render(&self) -> Result<(), GraphicsError> {
