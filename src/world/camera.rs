@@ -46,7 +46,8 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: Projection::Orthographic { left: 0., right: 8., top: 6., bottom: 0., near: -20., far: 20. },// Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
+            projection: Projection::Orthographic { left: 0., right: 8., top: 6., bottom: 0., near: -20., far: 20. },
+            //projection:  Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };

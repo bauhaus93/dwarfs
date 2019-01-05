@@ -6,7 +6,7 @@ use glm::Vector3;
 use application::ApplicationError;
 use graphics::{ Mesh, MeshBuilder, ShaderProgram, GraphicsError };
 use graphics::mesh::{ Quad };
-use world::{ Camera, Object, traits::{ Renderable, Translatable, Scalable } };
+use world::{ Camera, Object, Noise, traits::{ Renderable, Translatable, Scalable } };
 use super::Field;
 
 pub struct Layer {
@@ -15,12 +15,14 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn new(level: i32, size: (u32, u32)) -> Result<Self, ApplicationError> {
+    pub fn new(level: i32, size: (u32, u32), height_noise: &Noise) -> Result<Self, ApplicationError> {
         debug!("Creating layer, level = {}, size = {}x{}", level, size.0, size.1);
         let mut fields = HashMap::new();
         for y in 0..size.1 {
             for x in 0..size.0 {
-                fields.insert((x, y), Field::default());
+                if height_noise.get_noise((x as f32, y as f32)) > level as f32 {
+                    fields.insert((x, y), Field::default());
+                }
             }
         }
         let mesh = create_mesh(&fields)?;

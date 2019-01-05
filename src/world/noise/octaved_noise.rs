@@ -1,9 +1,9 @@
 
 use super::{ Noise, SimplexNoise };
 
-const DEFAULT_OCTAVES: u8 = 6;
+const DEFAULT_OCTAVES: u8 = 4;
 const DEFAULT_ROUGHNESS: f32 = 0.5;
-const DEFAULT_SCALE: f32 = 2.5e-3;
+const DEFAULT_SCALE: f32 = 2.5e-1;
 const DEFAULT_RANGE: (f32, f32) = (-1., 1.);
 
 pub struct OctavedNoise {
@@ -24,6 +24,10 @@ impl OctavedNoise {
             range: DEFAULT_RANGE
         }
     }
+
+    pub fn set_range(&mut self, new_range: (f32, f32)) {
+        self.range = new_range;
+    }
 }
 
 /*
@@ -40,12 +44,14 @@ impl Noise for OctavedNoise {
 
         for _oct in 0..self.octaves {
             sum += self.noise.get_noise((p.0 * freq, p.1 * freq)) * weight;
-            freq *= 2.;
             weight_sum += weight;
+            freq *= 2.;
             weight *= self.roughness;
         }
         let sub_range = self.noise.get_range();
-        self.range.0 + (self.range.1 - self.range.0) * (-sub_range.0 + (sum / weight_sum) / (sub_range.1 - sub_range.0))
+        let normalized =  (-sub_range.0 + (sum / weight_sum)) / (sub_range.1 - sub_range.0);
+        debug_assert!(normalized >= 0. && normalized <= 1.);
+        self.range.0 + (self.range.1 - self.range.0) * normalized
     }
 
     fn get_range(&self) -> (f32, f32) {

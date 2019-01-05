@@ -1,14 +1,17 @@
+use std::collections::BTreeMap;
 use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
 use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
 use world::{ Camera, Layer, traits::{ Translatable, Rotatable, Updatable, Renderable } };
+use world::noise::{ Noise, OctavedNoise };
 
 pub struct World {
     texture_array: TextureArray,
     camera: Camera,
-    layer: Layer
+    height_noise: OctavedNoise,
+    layers: BTreeMap<i32, Layer>,
 }
 
 impl World {
@@ -16,11 +19,20 @@ impl World {
         let texture_array = TextureArrayBuilder::new("resources/atlas.png", (64, 64))
             .add_texture((0, 0))
             .finish()?;
-        let world = World {
+
+        let mut height_noise = OctavedNoise::default();
+        height_noise.set_range((0., 5.));
+
+        let mut world = World {
             texture_array: texture_array,
             camera: Camera::default(),
-            layer: Layer::new(0, (32, 32))?
+            height_noise: height_noise,
+            layers: BTreeMap::new()
         };
+        for level in -5..5 {
+            let layer = Layer::new(level, (32, 32), &world.height_noise)?;
+            world.layers.insert(level, layer);
+        }
         Ok(world)
     }
 
@@ -28,9 +40,12 @@ impl World {
         self.camera.mod_position(Vector3::<GLfloat>::new(offset[0], offset[1], offset[2]));
     }
 
-    pub fn render(&mut self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
+    pub fn render(&self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
         self.texture_array.activate();
-        self.layer.render(&self.camera, shader)?;
+
+        for (level, layer) in self.layers.iter() {
+            layer.render(&self.camera, shader)?;
+        }
         self.texture_array.deactivate();
         Ok(())
     }
