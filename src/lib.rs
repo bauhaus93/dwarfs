@@ -6,6 +6,9 @@ extern crate glutin;
 extern crate glm;
 extern crate image;
 extern crate num_traits;
+extern crate rand;
+#[macro_use]
+extern crate lazy_static;
 
 pub mod application;
 mod graphics;
