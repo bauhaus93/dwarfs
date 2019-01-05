@@ -16,6 +16,7 @@ pub struct Layer {
 
 impl Layer {
     pub fn new(level: i32, size: (u32, u32)) -> Result<Self, ApplicationError> {
+        debug!("Creating layer, level = {}, size = {}x{}", level, size.0, size.1);
         let mut fields = HashMap::new();
         for y in 0..size.1 {
             for x in 0..size.0 {
@@ -23,7 +24,7 @@ impl Layer {
             }
         }
         let mesh = create_mesh(&fields)?;
-        debug!("Layer triangle count: {}", mesh.get_triangle_count());
+        debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
         let mut object = Object::new(mesh);
         object.set_position(Vector3::new(0., 0., level as f32));
         Ok(Self {

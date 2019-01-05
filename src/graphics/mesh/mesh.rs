@@ -3,29 +3,29 @@ use gl;
 use gl::types::{ GLuint };
 
 use graphics::{ check_opengl_error, GraphicsError };
-use super::{ Triangle };
+use super::{ Quad };
 
 pub struct Mesh {
     vao: GLuint,
     vbos: [GLuint; 4],
     index_count: GLuint,
-    triangles: Vec<Triangle> 
+    quads: Vec<Quad> 
 }
 
 impl Mesh {
-    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint, mut triangles: Vec<Triangle>) -> Self {
+    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint, mut quads: Vec<Quad>) -> Self {
         debug_assert!(vao != 0);
         debug_assert!(vbos.iter().all(|v| *v != 0));
-        triangles.shrink_to_fit();
+        quads.shrink_to_fit();
         Self {
             vao: vao,
             vbos: vbos,
             index_count: index_count,
-            triangles: triangles
+            quads: quads
         }
     }
 
-    pub fn get_triangle_count(&self) -> u32 {
+    pub fn get_vertex_count(&self) -> u32 {
         self.index_count as u32
     }
 

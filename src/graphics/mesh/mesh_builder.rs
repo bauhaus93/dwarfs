@@ -8,7 +8,7 @@ use graphics::{ OpenglError, check_opengl_error, GraphicsError };
 use super::{ Vertex, Triangle, Quad, Mesh };
 
 pub struct MeshBuilder { 
-    triangles: Vec<Triangle>,
+    quads: Vec<Quad>,
     indexed_vertices: Vec<(Vertex, GLuint)>,
     position_buffer: Vec<GLfloat>,
     uv_buffer: Vec<GLfloat>,
@@ -19,7 +19,7 @@ pub struct MeshBuilder {
 impl MeshBuilder {
     pub fn new() -> Self {
         Self {
-            triangles: Vec::new(),
+            quads: Vec::new(),
             indexed_vertices: Vec::new(),
             position_buffer: Vec::new(),
             uv_buffer: Vec::new(),
@@ -29,9 +29,10 @@ impl MeshBuilder {
     }
 
     pub fn add_quad(mut self, quad: Quad) -> Self {
-        for t in &quad.to_triangles() {
+        for t in quad.create_triangles().into_iter() {
             self.add_triangle(t);
         }
+        self.quads.push(quad);
         self
     }
 
@@ -70,7 +71,7 @@ impl MeshBuilder {
                 return Err(GraphicsError::from(e));
             }
         };
-        let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint, self.triangles);
+        let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint, self.quads);
         Ok(mesh)
     }
 
