@@ -12,9 +12,10 @@ pub fn init_window(window_size: (f64, f64), events_loop: &glutin::EventsLoop) ->
         .with_vsync(true)
         .with_depth_buffer(8);
     let window = glutin::GlWindow::new(window_builder, context_builder, &events_loop)?;
+    info!("Loading opengl functions");
     gl::load_with(|s| window.context().get_proc_address(s) as *const _);
+    graphics::check_opengl_error("gl::load_with")?;
 
-    debug!("Making window active");
     unsafe {
         window.make_current()?;
     }
