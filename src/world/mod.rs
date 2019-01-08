@@ -5,6 +5,7 @@ mod camera;
 mod object;
 mod layer;
 mod noise;
+mod height_map;
 
 pub use self::world::World;
 pub use self::model::Model;

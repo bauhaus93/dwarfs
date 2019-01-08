@@ -8,11 +8,11 @@ uniform sampler2DArray textureArray;
 
 void main() {
     if (uv[0] < 0.02 || uv[1] < 0.02 || uv[0] > 0.98 || uv[1] > 0.98) {
-        color = vec3(1, 1, 0);
+        color = vec3(0, 0, 0);
     } else {
         color = texture(textureArray, uv).rgb;
-    }
-    if (abs(normal[2] - 1.0) > 0.1) {
-        color *= 0.66;
+        if (abs(normal[2] - 1.0) > 0.1) {
+            color *= 0.66;
+        }
     }
 }

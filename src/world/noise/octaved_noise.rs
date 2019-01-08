@@ -15,13 +15,14 @@ pub struct OctavedNoise {
 }
 
 impl OctavedNoise {
-    pub fn new(noise: Box<Noise>) -> Self {
+
+    pub fn new(octaves: u8, roughness: f32, scale: f32, range: (f32, f32), noise: Box<Noise>) -> Self {
         Self {
             noise: noise,
-            octaves: DEFAULT_OCTAVES,
-            roughness: DEFAULT_ROUGHNESS,
-            scale: DEFAULT_SCALE,
-            range: DEFAULT_RANGE
+            octaves: octaves,
+            roughness: roughness,
+            scale: scale,
+            range: range
         }
     }
 
