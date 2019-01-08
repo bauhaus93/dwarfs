@@ -11,15 +11,16 @@ use super::Field;
 
 pub struct Layer {
     object: Object,
-    fields: HashMap<(u32, u32), Field>,
+    fields: HashMap<(i32, i32), Field>,
 }
 
 impl Layer {
-    pub fn new(level: i32, size: (u32, u32), height_noise: &Noise) -> Result<Self, ApplicationError> {
+    pub fn new(level: i32, size: (i32, i32), height_noise: &Noise) -> Result<Self, ApplicationError> {
+        debug_assert!(size.0 >= 0 && size.1 >= 0);
         debug!("Creating layer, level = {}, size = {}x{}", level, size.0, size.1);
         let mut fields = HashMap::new();
-        for y in 0..size.1 {
-            for x in 0..size.0 {
+        for y in 0..size.1 as i32 {
+            for x in 0..size.0 as i32 {
                 if height_noise.get_noise((x as f32, y as f32)) > level as f32 {
                     fields.insert((x, y), Field::default());
                 }
@@ -42,7 +43,7 @@ impl Renderable for Layer {
     }
 }
 
-fn create_mesh(fields: &HashMap<(u32, u32), Field>) -> Result<Mesh, GraphicsError> {
+fn create_mesh(fields: &HashMap<(i32, i32), Field>) -> Result<Mesh, GraphicsError> {
     let mut builder = MeshBuilder::new();
     for (pos, field) in fields {        
         let mut top_quad = Quad::default();

@@ -16,7 +16,7 @@ pub struct World {
 
 impl World {
     pub fn new() -> Result<World, ApplicationError> {
-        let texture_array = TextureArrayBuilder::new("resources/atlas.png", (64, 64))
+        let texture_array = TextureArrayBuilder::new("resources/atlas.png", (32, 32))
             .add_texture((0, 0))
             .finish()?;
 

@@ -86,7 +86,7 @@ impl Noise for SimplexNoise {
             let grad_index = calculate_gradient_index(table_base_index, table_offset[i], &self.permutation_table);
             contrib_sum += calculate_corner_contribution(grad_index, corner[i]);
         }
-        debug_assert!(70. * contrib_sum >= -1. && 70. * contrib_sum <= 1.);
+        debug_assert!((70. * contrib_sum).abs() <= 1.);
         70. * contrib_sum
     }
     fn get_range(&self) -> (f32, f32) {
@@ -105,7 +105,7 @@ fn calculate_corners(p: (f32, f32), cell_origin: (f32, f32))  -> [(f32, f32); 3]
     corner[1].1 = corner[0].1 - offset.1 as f32 + *G2;
     
     corner[2].0 = corner[0].0 - 1. + 2. * *G2;
-    corner[2].1 = corner[0].1 - 1. * 2. * *G2;
+    corner[2].1 = corner[0].1 - 1. + 2. * *G2;
     corner 
 }
 
