@@ -10,7 +10,7 @@ use log::Record;
 use env_logger::{ Builder, fmt::Formatter };
 
 fn main() {
-    const WINDOW_SIZE: (f64, f64) = (800., 600.);
+    const WINDOW_SIZE: (f64, f64) = (1024., 768.);
 
     init_custom_logger();
 

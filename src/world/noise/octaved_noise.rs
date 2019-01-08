@@ -25,6 +25,18 @@ impl OctavedNoise {
         }
     }
 
+    pub fn set_octaves(&mut self, octave_count: u8) {
+        self.octaves = octave_count;
+    }
+
+    pub fn set_roughness(&mut self, roughness: f32) {
+        self.roughness = roughness;
+    }
+
+    pub fn set_scale(&mut self, scale: f32) {
+        self.scale = scale;
+    }
+
     pub fn set_range(&mut self, new_range: (f32, f32)) {
         self.range = new_range;
     }

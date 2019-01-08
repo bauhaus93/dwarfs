@@ -21,6 +21,8 @@ impl World {
             .finish()?;
 
         let mut height_noise = OctavedNoise::default();
+        height_noise.set_scale(8e-3);
+        height_noise.set_roughness(1e+3);
         height_noise.set_range((0., 5.));
 
         let mut world = World {
@@ -30,7 +32,7 @@ impl World {
             layers: BTreeMap::new()
         };
         for level in -5..5 {
-            let layer = Layer::new(level, (32, 32), &world.height_noise)?;
+            let layer = Layer::new(level, (128, 128), &world.height_noise)?;
             world.layers.insert(level, layer);
         }
         Ok(world)

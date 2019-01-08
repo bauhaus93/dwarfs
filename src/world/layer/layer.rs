@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time;
 
 use gl::types::GLfloat;
 use glm::Vector3;
@@ -18,7 +19,8 @@ impl Layer {
     pub fn new(level: i32, size: (i32, i32), height_noise: &Noise) -> Result<Self, ApplicationError> {
         debug_assert!(size.0 >= 0 && size.1 >= 0);
         debug!("Creating layer, level = {}, size = {}x{}", level, size.0, size.1);
-        let mut fields = HashMap::new();
+        let mut fields = HashMap::with_capacity((size.0 * size.1) as usize);
+
         for y in 0..size.1 as i32 {
             for x in 0..size.0 as i32 {
                 if height_noise.get_noise((x as f32, y as f32)) > level as f32 {
@@ -45,31 +47,32 @@ impl Renderable for Layer {
 
 fn create_mesh(fields: &HashMap<(i32, i32), Field>) -> Result<Mesh, GraphicsError> {
     let mut builder = MeshBuilder::new();
-    for (pos, field) in fields {        
+    for (pos, field) in fields {
         let mut top_quad = Quad::default();
         top_quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat, 0.5));
         builder = builder.add_quad(top_quad);
+
         match fields.get(&(pos.0, pos.1 - 1)) {
-            Some(_) => {},
             None => {
                 let mut right_quad = Quad::default();
                 right_quad.rotate(Vector3::new(90f32.to_radians() as GLfloat, 0., 0.));
                 right_quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat - 0.5, 0.));
                 right_quad.cycle_uvs(1);
                 builder = builder.add_quad(right_quad);
-            }
+            },
+            _ => {}
         }
+        
         match fields.get(&(pos.0 - 1, pos.1)) {
-            Some(_) => {},
             None => {
                 let mut left_quad = Quad::default();
                 left_quad.rotate(Vector3::new(0., -90f32.to_radians() as GLfloat, 0.));
                 left_quad.translate(Vector3::new(pos.0 as GLfloat - 0.5, pos.1 as GLfloat, 0.));
                 left_quad.cycle_uvs(2);
                 builder = builder.add_quad(left_quad);
-            }
-        }
-        
+            },
+            _ => {}
+        };
     }
     Ok(builder.finish()?)
 }

@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::collections::btree_map::Entry;
 use std::mem::size_of;
 use std::ffi::c_void;
 use std::ptr;
@@ -9,7 +11,7 @@ use super::{ Vertex, Triangle, Quad, Mesh };
 
 pub struct MeshBuilder { 
     quads: Vec<Quad>,
-    indexed_vertices: Vec<(Vertex, GLuint)>,
+    indexed_vertices: BTreeMap<Vertex, GLuint>,
     position_buffer: Vec<GLfloat>,
     uv_buffer: Vec<GLfloat>,
     normal_buffer: Vec<GLfloat>,
@@ -20,7 +22,7 @@ impl MeshBuilder {
     pub fn new() -> Self {
         Self {
             quads: Vec::new(),
-            indexed_vertices: Vec::new(),
+            indexed_vertices: BTreeMap::new(),
             position_buffer: Vec::new(),
             uv_buffer: Vec::new(),
             normal_buffer: Vec::new(),
@@ -38,12 +40,11 @@ impl MeshBuilder {
 
     fn add_triangle(&mut self, triangle: &Triangle) {
         for vert in triangle.get_vertices().iter() {
-            let new_vert_index = match self.indexed_vertices.iter().find(|(v, _i)| v == vert) {
-                Some((_, i)) => {
-                    self.index_buffer.push(*i);
-                    None
+            match self.indexed_vertices.entry(*vert) {
+                Entry::Occupied(o) => {
+                    self.index_buffer.push(*o.get());
                 },
-                None => {
+                Entry::Vacant(v) => {
                     debug_assert!(self.position_buffer.len() % 3 == 0);
                     debug_assert!(self.uv_buffer.len() % 3 == 0);
                     debug_assert!(self.normal_buffer.len() % 3 == 0);
@@ -52,12 +53,8 @@ impl MeshBuilder {
                     self.uv_buffer.extend(vert.get_uv().as_array());
                     self.normal_buffer.extend(vert.get_normal().as_array());
                     self.index_buffer.push(new_index);
-                    Some((vert.clone(), new_index))
+                    v.insert(new_index);
                 }
-            };
-            match new_vert_index {
-                Some(vi) => self.indexed_vertices.push(vi),
-                None => {}
             }
         }
     }

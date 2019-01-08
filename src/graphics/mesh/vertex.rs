@@ -1,4 +1,5 @@
 use std::ops::Add;
+use std::cmp::Ordering;
 use gl::types::GLfloat;
 use glm::{ GenNum, Vector3, Vector4 };
 
@@ -51,7 +52,6 @@ impl Vertex {
             self.normal[i] = new_normal[i];
         }
     }
-
 }
 
 impl Default for Vertex {
@@ -64,15 +64,65 @@ impl Default for Vertex {
     }
 }
 
+fn cmp_vec(lhs: &Vector3<GLfloat>, rhs: &Vector3<GLfloat>) -> Ordering {
+    const THRESHOLD: GLfloat = 1e-3;
+    for i in 0..3 {
+        let diff = lhs[i] - rhs[i];
+        if diff < -THRESHOLD {
+            return Ordering::Less;
+        } else if diff > THRESHOLD {
+            return Ordering::Greater;
+        }
+    }
+    Ordering::Equal
+}
+
 impl PartialEq for Vertex {
     fn eq(&self, other: &Vertex) -> bool {
-        const THRESHOLD: GLfloat = 1e-3;
-        self.pos.as_array().iter().chain(self.uv.as_array().iter()).chain(self.normal.as_array().iter())
-            .zip(other.pos.as_array().iter().chain(other.uv.as_array().iter()).chain(other.normal.as_array().iter()))
-            .all(|(&a, &b)| (a - b).abs() < THRESHOLD)
+        match cmp_vec(&self.pos, &other.pos) {
+            Ordering::Equal => {
+                match cmp_vec(&self.uv, &other.uv) {
+                    Ordering::Equal => {
+                        match cmp_vec(&self.normal, &other.normal) {
+                            Ordering::Equal => true,
+                            _ => false
+                        }
+                    },
+                    _ => false
+                }
+            },
+            _ => false
+        }
     }
 }
 
 impl Eq for Vertex {}
+
+impl Ord for Vertex {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match cmp_vec(&self.pos, &other.pos) {
+            Ordering::Equal => {
+                match cmp_vec(&self.uv, &other.uv) {
+                    Ordering::Equal => {
+                        match cmp_vec(&self.normal, &other.normal) {
+                            Ordering::Equal => Ordering::Equal,
+                            order => order
+                        }
+                    },
+                    order => order
+                }
+            },
+            order => order
+        }
+    }
+}
+
+impl PartialOrd for Vertex {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+
 
 
