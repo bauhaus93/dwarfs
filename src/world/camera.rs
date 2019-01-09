@@ -19,6 +19,23 @@ impl Camera {
         self.projection_matrix * self.view_matrix * model.get_matrix()
     }
 
+    pub fn zoom(&mut self, factor: f32) {
+        match &mut self.projection {
+            Projection::Orthographic { width, .. } => { 
+                *width = f32::max(f32::min(*width * factor, 1e3), 2e0);
+            },
+            Projection::Perspective { fov, ..} => {
+                *fov = f32::max(f32::min((*fov * factor).to_degrees(), 179f32), 1f32).to_radians()
+            }
+        }
+        self.update_projection();
+    }
+
+    pub fn set_projection(&mut self, new_projection: Projection) {
+        self.projection = new_projection;
+        self.update_projection();
+    }
+
     fn update_view(&mut self) {
         let direction = create_direction(self.model.get_rotation());
         self.view_matrix = look_at(
@@ -33,9 +50,9 @@ impl Camera {
                 info!("projection update: perspective, fov = {}, aspect ratio = {}, near = {}, far = {}", fov.to_degrees(), aspect_ratio, near, far);
                 perspective(fov, aspect_ratio, near, far)
             },
-            Projection::Orthographic { left, right, top, bottom, near, far } => {
-                info!("projection update: orthographic, left = {}, right = {}, top = {}, bottom = {}, near = {}, far = {}", left, right, top, bottom, near, far);
-                create_orthographic_projection_matrix(left, right, top, bottom, near, far)
+            Projection::Orthographic { width, aspect_ratio } => {
+                info!("projection update: orthographic, width = {}, aspect ratio = {}", width, aspect_ratio);
+                create_orthographic_projection_matrix(-width / 2., width / 2., width / 2. / aspect_ratio, -width / 2. / aspect_ratio, -2. * width, 2. * width)
             }
         }
     }
@@ -46,7 +63,7 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: Projection::Orthographic { left: 0., right: 16., top: 12., bottom: 0., near: -40., far: 40. },
+            projection: Projection::Orthographic { width: 20., aspect_ratio: 4./3. },
             //projection:  Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()

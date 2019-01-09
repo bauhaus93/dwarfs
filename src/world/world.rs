@@ -42,9 +42,14 @@ impl World {
         Ok(world)
     }
 
-    pub fn move_camera(&mut self, offset: [f32; 3]) {
-        self.camera.mod_position(Vector3::<GLfloat>::new(offset[0], offset[1], offset[2]));
+    pub fn get_camera(&self) -> &Camera {
+        &self.camera
     }
+
+    pub fn get_camera_mut(&mut self) -> &mut Camera {
+        &mut self.camera
+    }
+
 
     fn create_top_layer(&mut self, top_level: i32, layer_size: (i32, i32)) -> Result<(), ApplicationError> {
         debug_assert!(self.layers.is_empty());

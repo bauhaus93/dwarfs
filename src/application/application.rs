@@ -3,12 +3,13 @@ use std::{ thread, time, ops::{ Add, Sub } };
 use glutin;
 use gl;
 use gl::types::GLsizei;
+use glm::Vector3;
 
 use super::ApplicationError;
 use super::window;
 use graphics;
 use world;
-use world::traits::Updatable;
+use world::traits::{ Translatable, Updatable };
 
 pub struct Application {
     events_loop: glutin::EventsLoop,
@@ -71,7 +72,8 @@ impl Application {
                 match event {
                     glutin::WindowEvent::CloseRequested => { self.quit = true; },
                     glutin::WindowEvent::Resized(logical_size) => { self.handle_resize(logical_size.into()); },
-                    glutin::WindowEvent::KeyboardInput { input, .. } => { self.handle_keyboard_input(input) },
+                    glutin::WindowEvent::KeyboardInput { input, .. } => { self.handle_keyboard_input(input); },
+                    glutin::WindowEvent::MouseWheel { delta, phase, .. } => { self.handle_mousewheel(delta, phase); }
                     _ => {}
                 }
             },
@@ -94,16 +96,29 @@ impl Application {
         match (input.virtual_keycode, input.state) {
             (Some(keycode), glutin::ElementState::Pressed) => {
                 match keycode {
-                    glutin::VirtualKeyCode::A => self.world.move_camera([-1., 1., 0.]),
-                    glutin::VirtualKeyCode::D => self.world.move_camera([1., -1., 0.]),
-                    glutin::VirtualKeyCode::W => self.world.move_camera([1., 1., 0.]),
-                    glutin::VirtualKeyCode::S => self.world.move_camera([-1., -1., 0.]),
-                    glutin::VirtualKeyCode::R => self.world.move_camera([0., 0., 1.]),
-                    glutin::VirtualKeyCode::F => self.world.move_camera([0., 0., -1.]),
+                    glutin::VirtualKeyCode::A => self.world.get_camera_mut().mod_position(Vector3::new(-1., 1., 0.)),
+                    glutin::VirtualKeyCode::D => self.world.get_camera_mut().mod_position(Vector3::new(1., -1., 0.)),
+                    glutin::VirtualKeyCode::W => self.world.get_camera_mut().mod_position(Vector3::new(1., 1., 0.)),
+                    glutin::VirtualKeyCode::S => self.world.get_camera_mut().mod_position(Vector3::new(-1., -1., 0.)),
+                    glutin::VirtualKeyCode::R => self.world.get_camera_mut().mod_position(Vector3::new(0., 0., 1.)),
+                    glutin::VirtualKeyCode::F => self.world.get_camera_mut().mod_position(Vector3::new(0., 0., -1.)),
                     _ => {}
                 }
             },
             (_, _) => {}
+        }
+    }
+
+    fn handle_mousewheel(&mut self, delta: glutin::MouseScrollDelta, phase: glutin::TouchPhase) {
+        match phase {
+            glutin::TouchPhase::Moved => {
+                match delta {
+                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir > 0. => { self.world.get_camera_mut().zoom(0.8); },
+                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir < 0. => { self.world.get_camera_mut().zoom(1.2); },
+                    _ => { warn!("meh."); }
+                }
+            },
+            _ => {}
         }
     }
 
