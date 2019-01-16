@@ -2,8 +2,8 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ mesh::Mesh, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use world::{ Object, Camera, Layer, WorldError, traits::{ Translatable, Rotatable, Updatable, Renderable } };
+use graphics::{ mesh::{ Mesh, MeshManager }, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use world::{ Object, Camera, Layer, WorldError, traits::{ Translatable, Rotatable, Scalable, Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
 
@@ -11,6 +11,7 @@ pub struct World {
     texture_array: TextureArray,
     camera: Camera,
     height_map: HeightMap,
+    mesh_manager: MeshManager,
     layers: Vec<Layer>,
     test_object: Object
 }
@@ -30,16 +31,20 @@ impl World {
         height_noise.set_range((0., 5.));
         let height_map = create_height_map(LAYER_SIZE, &height_noise);
 
+        let mut mesh_manager = MeshManager::default();
+
         let test_mesh = match Mesh::from_obj("resources/test.obj") {
             Ok(mesh) => mesh,
             Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
         };
-        let test_object = Object::new(test_mesh);
+        mesh_manager.add_mesh(test_mesh, "test");
+        let test_object = Object::new(mesh_manager.get_mesh("test").unwrap());
 
         let mut world = World {
             texture_array: texture_array,
             camera: Camera::default(),
             height_map: height_map,
+            mesh_manager: mesh_manager,
             layers: Vec::new(),
             test_object: test_object
         };

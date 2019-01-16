@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use std::collections::HashMap;
 use std::time;
 
@@ -29,7 +30,7 @@ impl Layer {
         let fields = create_default_field_map(level, height_map);
         let mesh = create_mesh(&fields, Some(&upper_layer.fields))?;
         debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
-        let mut object = Object::new(mesh);
+        let mut object = Object::new(Rc::new(mesh));
         object.set_position(Vector3::new(0., 0., level as f32));
         Ok(Self {
             object: object,
@@ -46,7 +47,7 @@ impl Layer {
         let fields = create_default_field_map(level, height_map);
         let mesh = create_mesh(&fields, None)?;
         debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
-        let mut object = Object::new(mesh);
+        let mut object = Object::new(Rc::new(mesh));
         object.set_position(Vector3::new(0., 0., level as f32));
         Ok(Self {
             object: object,

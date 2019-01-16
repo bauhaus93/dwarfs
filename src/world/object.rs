@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use glm::{ Vector3 };
 
 use graphics::{ Mesh, ShaderProgram, GraphicsError };
@@ -5,11 +6,11 @@ use world::{ Camera, Model, traits::{ Translatable, Rotatable, Scalable, Rendera
 
 pub struct Object {
     model: Model,
-    mesh: Mesh,
+    mesh: Rc<Mesh>,
 }
 
 impl Object {
-    pub fn new(mesh: Mesh) -> Object {
+    pub fn new(mesh: Rc<Mesh>) -> Object {
         Object {
             model: Model::default(),
             mesh: mesh,
