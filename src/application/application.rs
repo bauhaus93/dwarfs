@@ -135,11 +135,13 @@ impl Application {
         } 
     }
 
-    fn render(&mut self) -> Result<(), graphics::GraphicsError> {
+    fn render(&mut self) -> Result<(), ApplicationError> {
         unsafe { gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT) }        
         self.world.render(&self.shader_program)?;
-        self.window.swap_buffers()?;
-        Ok(())
+        match self.window.swap_buffers() {
+            Ok(_) => Ok(()),
+            Err(e) => Err(ApplicationError::from(graphics::GraphicsError::from(e)))
+        }
     }
 }
 

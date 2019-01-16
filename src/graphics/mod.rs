@@ -13,7 +13,6 @@ pub use self::shader::ShaderProgramBuilder;
 pub use self::texture::TextureArray;
 pub use self::texture::TextureArrayBuilder;
 pub use self::mesh::Mesh;
-pub use self::mesh::MeshBuilder;
 pub use self::projection::{ Projection, create_orthographic_projection };
 pub use self::transformation::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix, create_direction, create_orthographic_projection_matrix };
 pub use self::graphics_error::GraphicsError;

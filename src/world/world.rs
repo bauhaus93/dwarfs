@@ -2,8 +2,8 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ MeshBuilder, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use world::{ Object, Camera, Layer, traits::{ Translatable, Rotatable, Updatable, Renderable } };
+use graphics::{ mesh::Mesh, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use world::{ Object, Camera, Layer, WorldError, traits::{ Translatable, Rotatable, Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
 
@@ -16,7 +16,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn new() -> Result<World, ApplicationError> {
+    pub fn new() -> Result<World, WorldError> {
         const TOP_LEVEL: i32 = 5;
         const LAYER_SIZE: (i32, i32) = (128, 128);
         let texture_array = TextureArrayBuilder::new("resources/atlas.png", (32, 32))
@@ -30,7 +30,11 @@ impl World {
         height_noise.set_range((0., 5.));
         let height_map = create_height_map(LAYER_SIZE, &height_noise);
 
-        let mut test_object = Object::new(MeshBuilder::from_obj("resources/test.obj")?.finish()?);
+        let test_mesh = match Mesh::from_obj("resources/test.obj") {
+            Ok(mesh) => mesh,
+            Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
+        };
+        let test_object = Object::new(test_mesh);
 
         let mut world = World {
             texture_array: texture_array,
@@ -40,8 +44,8 @@ impl World {
             test_object: test_object
         };
 
-        world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
-        world.create_layers(20)?;
+        //world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
+        //world.create_layers(20)?;
 
         Ok(world)
     }
@@ -55,23 +59,23 @@ impl World {
     }
 
 
-    fn create_top_layer(&mut self, top_level: i32, layer_size: (i32, i32)) -> Result<(), ApplicationError> {
+    fn create_top_layer(&mut self, top_level: i32, layer_size: (i32, i32)) -> Result<(), WorldError> {
         debug_assert!(self.layers.is_empty());
         let top_layer = Layer::new_top(top_level, layer_size, &self.height_map)?;
         self.layers.push(top_layer);
         Ok(())
     }
 
-    fn create_layers(&mut self, count: i32) -> Result<(), ApplicationError> {
+    fn create_layers(&mut self, count: i32) -> Result<(), WorldError> {
         debug_assert!(!self.layers.is_empty());
-        for level in 0..count {
+        for _level in 0..count {
             let layer = Layer::new(&self.layers[self.layers.len() - 1], &self.height_map)?;
             self.layers.push(layer);
         }
         Ok(())
     }
 
-    pub fn render(&self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
+    pub fn render(&self, shader: &ShaderProgram) -> Result<(), WorldError> {
         self.texture_array.activate();
 
         self.test_object.render(&self.camera, shader)?;

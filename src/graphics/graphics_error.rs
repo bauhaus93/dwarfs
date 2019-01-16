@@ -5,6 +5,7 @@ use glutin;
 use image;
 
 use super::shader::{ ShaderError, ShaderProgramError };
+use super::mesh::MeshError;
 use super::OpenglError;
 
 #[derive(Debug)]
@@ -13,6 +14,7 @@ pub enum GraphicsError {
     GlutinContext(glutin::ContextError),
     Image(image::ImageError),
     Shader(ShaderError),
+    Mesh(MeshError),
     ShaderProgram(ShaderProgramError),
     Opengl(OpenglError),
     FunctionFailure(String),
@@ -43,6 +45,12 @@ impl From<ShaderError> for GraphicsError {
     }
 }
 
+impl From<MeshError> for GraphicsError {
+    fn from(err: MeshError) -> GraphicsError {
+        GraphicsError::Mesh(err)
+    }
+}
+
 impl From<ShaderProgramError> for GraphicsError {
     fn from(err: ShaderProgramError) -> GraphicsError {
         GraphicsError::ShaderProgram(err)
@@ -63,6 +71,7 @@ impl Error for GraphicsError {
             GraphicsError::Image(_) => "image",
             GraphicsError::Shader(_) => "shader",
             GraphicsError::ShaderProgram(_) => "shader program",
+            GraphicsError::Mesh(_) => "mesh",
             GraphicsError::Opengl(_) => "opengl",
             GraphicsError::FunctionFailure(_) => "function failure",
             GraphicsError::InvalidImageFormat(_) => "invalid image format"        
@@ -76,6 +85,7 @@ impl Error for GraphicsError {
             GraphicsError::Image(ref err) => Some(err),
             GraphicsError::Shader(ref err) => Some(err),
             GraphicsError::ShaderProgram(ref err) => Some(err),
+            GraphicsError::Mesh(ref err) => Some(err),
             GraphicsError::Opengl(ref err) => Some(err),
             GraphicsError::FunctionFailure(_) => None,
             GraphicsError::InvalidImageFormat(_) => None
@@ -91,6 +101,7 @@ impl fmt::Display for GraphicsError {
             GraphicsError::Image(ref err) => write!(f, "{}: {}", self.description(), err),
             GraphicsError::Shader(ref err) => write!(f, "{}/{}", self.description(), err),
             GraphicsError::ShaderProgram(ref err) => write!(f, "{}/{}", self.description(), err),
+            GraphicsError::Mesh(ref err) => write!(f, "{}/{}", self.description(), err),
             GraphicsError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err),
             GraphicsError::FunctionFailure(ref func_name) => write!(f, "{} @ {}", self.description(), func_name),
             GraphicsError::InvalidImageFormat(ref img_name) => write!(f, "{}: Image not of format rgba8: '{}'", self.description(), img_name)

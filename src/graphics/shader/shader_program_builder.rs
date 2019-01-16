@@ -45,7 +45,7 @@ impl ShaderProgramBuilder {
         self
     }
     pub fn finish(self) -> Result<ShaderProgram, GraphicsError> {
-        let mut resources = Resources::new(&self.shader_list)?;
+        let resources = Resources::new(&self.shader_list)?;
         let program_id = resources.build()?;
         let program = ShaderProgram::new(program_id)?;
         Ok(program)

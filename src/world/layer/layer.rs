@@ -5,8 +5,8 @@ use gl::types::GLfloat;
 use glm::Vector3;
 
 use application::ApplicationError;
-use graphics::{ Mesh, MeshBuilder, ShaderProgram, GraphicsError };
-use world::{ Camera, Object, Noise, traits::{ Renderable, Translatable, Scalable } };
+use graphics::{ Mesh, ShaderProgram, GraphicsError };
+use world::{ Camera, Object, Noise, WorldError, traits::{ Renderable, Translatable, Scalable } };
 use world::height_map::HeightMap;
 use super::Field;
 
@@ -19,18 +19,8 @@ pub struct Layer {
     fields: FieldMap,
 }
 
-fn create_default_field_map(level: i32, height_map: &HeightMap) -> FieldMap {
-    let mut fields = FieldMap::new();
-    for (pos, h) in height_map.iter() {
-        if level < *h {
-            fields.insert(*pos, Field::default());
-        }
-    }
-    fields
-}
-
 impl Layer {
-    pub fn new(upper_layer: &Layer, height_map: &HeightMap) -> Result<Self, ApplicationError> {
+    pub fn new(upper_layer: &Layer, height_map: &HeightMap) -> Result<Self, WorldError> {
         let level = upper_layer.level - 1;
         let size = upper_layer.size;
         debug!("Creating new layer, level = {}, size = {}x{}", level, size.0, size.1);
@@ -49,7 +39,7 @@ impl Layer {
         })
     }
 
-    pub fn new_top(level: i32, size: (i32, i32), height_map: &HeightMap) -> Result<Self, ApplicationError> {
+    pub fn new_top(level: i32, size: (i32, i32), height_map: &HeightMap) -> Result<Self, WorldError> {
         debug!("Creating new top layer, level = {}, size = {}x{}", level, size.0, size.1);
         debug_assert!(size.0 >= 0 && size.1 >= 0);
 
@@ -73,9 +63,17 @@ impl Renderable for Layer {
     }
 }
 
-fn create_mesh(fields: &HashMap<(i32, i32), Field>, upper_fields: Option<&HashMap<(i32, i32), Field>>) -> Result<Mesh, GraphicsError> {
-    let mut builder = MeshBuilder::new();
+fn create_default_field_map(level: i32, height_map: &HeightMap) -> FieldMap {
+    let mut fields = FieldMap::new();
+    for (pos, h) in height_map.iter() {
+        if level < *h {
+            fields.insert(*pos, Field::default());
+        }
+    }
+    fields
+}
 
-    Ok(builder.finish()?)
+fn create_mesh(fields: &HashMap<(i32, i32), Field>, upper_fields: Option<&HashMap<(i32, i32), Field>>) -> Result<Mesh, WorldError> {
+    Err(WorldError::from(GraphicsError::FunctionFailure("Not implemented".to_string())))
 }
 

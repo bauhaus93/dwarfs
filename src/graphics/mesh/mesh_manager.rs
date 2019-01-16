@@ -4,6 +4,10 @@ pub struct MeshManager {
     mesh_map: BTreeMap<String, Rc<Mesh>>
 }
 
+impl MeshManager {
+    
+}
+
 impl Default for MeshManager {
     fn default() -> Self {
         Self {

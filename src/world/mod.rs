@@ -1,5 +1,6 @@
 pub mod world;
 pub mod traits;
+pub mod world_error;
 mod model;
 mod camera;
 mod object;
@@ -15,3 +16,4 @@ pub use self::layer::Layer;
 pub use self::noise::Noise;
 pub use self::noise::OctavedNoise;
 pub use self::noise::SimplexNoise;
+pub use self::world_error::WorldError;
