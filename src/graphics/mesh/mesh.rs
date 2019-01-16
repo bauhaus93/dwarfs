@@ -12,6 +12,7 @@ pub struct Mesh {
     vao: GLuint,
     vbos: [GLuint; 4],
     index_count: GLuint,
+    triangles: Vec<Triangle>
 }
 
 impl Mesh {
@@ -25,8 +26,8 @@ impl Mesh {
         let mut uv_buffer: Vec<GLfloat> = Vec::new();
         let mut normal_buffer: Vec<GLfloat> = Vec::new();
         let mut index_buffer: Vec<GLuint> = Vec::new();
-        for triangle in triangles.into_iter() {
-            for vertex in &triangle.into_vertices() {
+        for triangle in triangles.iter() {
+            for vertex in triangle.as_vertices() {
                 match indexed_vertices.entry(*vertex) {
                     Entry::Occupied(o) => {
                         index_buffer.push(*o.get());
@@ -57,12 +58,19 @@ impl Mesh {
         Ok(Self {
             vao: vao,
             vbos: vbos,
-            index_count: indices
+            index_count: indices,
+            triangles: triangles
         })
     }
 
     pub fn get_vertex_count(&self) -> u32 {
         self.index_count as u32
+    }
+
+    pub fn copy_triangles(&self) -> Vec<Triangle> {
+        let mut copy = Vec::new();
+        self.triangles.iter().for_each(|t| copy.push(*t));
+        copy
     }
 
     pub fn render(&self) -> Result<(), MeshError> {

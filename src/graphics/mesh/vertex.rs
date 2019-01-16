@@ -6,7 +6,7 @@ use glm::{ GenNum, Vector3, Vector4 };
 
 use graphics::{ create_rotation_matrix };
 
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct Vertex {
     pos: Vector3<GLfloat>,
     uv: Vector3<GLfloat>,
