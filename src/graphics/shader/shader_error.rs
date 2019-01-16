@@ -5,24 +5,25 @@ use std::io;
 use gl::types::{ GLuint, GLint };
 
 use graphics::OpenglError;
+use utility::FileError;
 
 #[derive(Debug)]
 pub enum ShaderError {
-    IO(io::Error),
+    File(FileError),
     UnknownShaderType(GLuint),
     Compilation(String),
     Opengl(OpenglError),
     FunctionFailure(String)
 }
 
-impl From<io::Error> for ShaderError {
-    fn from(err: io::Error) -> ShaderError {
-        ShaderError::IO(err)
+impl From<FileError> for ShaderError {
+    fn from(err: FileError) -> Self {
+        ShaderError::File(err)
     }
 }
 
 impl From<OpenglError> for ShaderError {
-    fn from(err: OpenglError) -> ShaderError {
+    fn from(err: OpenglError) -> Self {
         ShaderError::Opengl(err)
     }
 }
@@ -31,7 +32,7 @@ impl Error for ShaderError {
 
     fn description(&self) -> &str {
         match *self {
-            ShaderError::IO(_) => "io",
+            ShaderError::File(_) => "file",
             ShaderError::UnknownShaderType(_) => "unknown shader type",
             ShaderError::Compilation(_) => "compilation",
             ShaderError::Opengl(_) => "opengl",
@@ -41,7 +42,7 @@ impl Error for ShaderError {
 
     fn cause(&self) -> Option<&Error> {
         match *self {
-            ShaderError::IO(ref err) => Some(err),
+            ShaderError::File(ref err) => Some(err),
             ShaderError::UnknownShaderType(_) => None,
             ShaderError::Compilation(_) => None,
             ShaderError::Opengl(ref err) => Some(err),
@@ -53,7 +54,7 @@ impl Error for ShaderError {
 impl fmt::Display for ShaderError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            ShaderError::IO(ref err) => write!(f, "{}: {}", self.description(), err),
+            ShaderError::File(ref err) => write!(f, "{}/{}", self.description(), err),
             ShaderError::UnknownShaderType(type_id) => write!(f, "{}: type id is {}", self.description(), type_id),
             ShaderError::Compilation(ref shader_log) => write!(f, "{}: {}", self.description(), shader_log),
             ShaderError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err),

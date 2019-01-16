@@ -6,7 +6,6 @@ use glm::Vector3;
 
 use application::ApplicationError;
 use graphics::{ Mesh, MeshBuilder, ShaderProgram, GraphicsError };
-use graphics::mesh::{ Quad };
 use world::{ Camera, Object, Noise, traits::{ Renderable, Translatable, Scalable } };
 use world::height_map::HeightMap;
 use super::Field;
@@ -76,45 +75,7 @@ impl Renderable for Layer {
 
 fn create_mesh(fields: &HashMap<(i32, i32), Field>, upper_fields: Option<&HashMap<(i32, i32), Field>>) -> Result<Mesh, GraphicsError> {
     let mut builder = MeshBuilder::new();
-    for (pos, field) in fields {
-        let mut has_top = false;
-        match upper_fields {
-            Some(upper) => {
-                match upper.get(pos) {
-                    None => { has_top = true; },
-                    _ => {}
-                }
-            },
-            _ => { has_top = true; }
-        }
-        if has_top {
-            let mut top_quad = Quad::default();
-            top_quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat, 0.5));
-            builder = builder.add_quad(top_quad);
-        }
 
-        match fields.get(&(pos.0, pos.1 - 1)) {
-            None => {
-                let mut right_quad = Quad::default();
-                right_quad.rotate(Vector3::new(90f32.to_radians() as GLfloat, 0., 0.));
-                right_quad.translate(Vector3::new(pos.0 as GLfloat, pos.1 as GLfloat - 0.5, 0.));
-                right_quad.cycle_uvs(1);
-                builder = builder.add_quad(right_quad);
-            },
-            _ => {}
-        }
-        
-        match fields.get(&(pos.0 - 1, pos.1)) {
-            None => {
-                let mut left_quad = Quad::default();
-                left_quad.rotate(Vector3::new(0., -90f32.to_radians() as GLfloat, 0.));
-                left_quad.translate(Vector3::new(pos.0 as GLfloat - 0.5, pos.1 as GLfloat, 0.));
-                left_quad.cycle_uvs(2);
-                builder = builder.add_quad(left_quad);
-            },
-            _ => {}
-        };
-    }
     Ok(builder.finish()?)
 }
 

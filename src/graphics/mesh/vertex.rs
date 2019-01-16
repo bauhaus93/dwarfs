@@ -1,5 +1,6 @@
 use std::ops::Add;
 use std::cmp::Ordering;
+use std::fmt;
 use gl::types::GLfloat;
 use glm::{ GenNum, Vector3, Vector4 };
 
@@ -17,6 +18,7 @@ impl Vertex {
     pub fn get_pos(&self) -> Vector3<GLfloat> {
         self.pos.clone()
     }
+
     pub fn get_uv(&self) -> Vector3<GLfloat> {
         self.uv.clone()
     }
@@ -28,9 +30,11 @@ impl Vertex {
     pub fn set_pos(&mut self, new_pos: Vector3<GLfloat>) {
         self.pos = new_pos;
     }
+
     pub fn set_uv(&mut self, new_uv: Vector3<GLfloat>) {
         self.uv = new_uv;
     }
+    
     pub fn set_normal(&mut self, new_normal: Vector3<GLfloat>) {
         self.normal = new_normal;
     }
@@ -122,6 +126,16 @@ impl PartialOrd for Vertex {
         Some(self.cmp(other))
     }
 }
+
+impl fmt::Display for Vertex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "v = {:.2}/{:.2}/{:.2}, uv = {:.2}/{:.2}/{:.2}, n = {:.2}/{:.2}/{:.2}",
+            self.pos[0], self.pos[1], self.pos[2],
+            self.uv[0], self.uv[1], self.uv[2],
+            self.normal[0], self.normal[1], self.normal[2])
+    }
+}
+
 
 
 

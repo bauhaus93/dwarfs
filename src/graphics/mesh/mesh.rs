@@ -3,25 +3,21 @@ use gl;
 use gl::types::{ GLuint };
 
 use graphics::{ check_opengl_error, GraphicsError };
-use super::{ Quad };
 
 pub struct Mesh {
     vao: GLuint,
     vbos: [GLuint; 4],
     index_count: GLuint,
-    quads: Vec<Quad> 
 }
 
 impl Mesh {
-    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint, mut quads: Vec<Quad>) -> Self {
+    pub fn new(vao: GLuint, vbos: [GLuint; 4], index_count: GLuint) -> Self {
         debug_assert!(vao != 0);
         debug_assert!(vbos.iter().all(|v| *v != 0));
-        quads.shrink_to_fit();
         Self {
             vao: vao,
             vbos: vbos,
             index_count: index_count,
-            quads: quads
         }
     }
 

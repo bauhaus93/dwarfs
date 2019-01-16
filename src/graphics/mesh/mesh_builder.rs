@@ -1,16 +1,14 @@
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
-use std::mem::size_of;
-use std::ffi::c_void;
-use std::ptr;
+use std::{ ptr, io, ffi::c_void, mem::size_of };
 use gl;
 use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
 
+use utility::{ read_obj, FileError };
 use graphics::{ OpenglError, check_opengl_error, GraphicsError };
-use super::{ Vertex, Triangle, Quad, Mesh };
+use super::{ Vertex, Triangle, Mesh };
 
 pub struct MeshBuilder { 
-    quads: Vec<Quad>,
     indexed_vertices: BTreeMap<Vertex, GLuint>,
     position_buffer: Vec<GLfloat>,
     uv_buffer: Vec<GLfloat>,
@@ -21,7 +19,6 @@ pub struct MeshBuilder {
 impl MeshBuilder {
     pub fn new() -> Self {
         Self {
-            quads: Vec::new(),
             indexed_vertices: BTreeMap::new(),
             position_buffer: Vec::new(),
             uv_buffer: Vec::new(),
@@ -30,12 +27,12 @@ impl MeshBuilder {
         }
     }
 
-    pub fn add_quad(mut self, quad: Quad) -> Self {
-        for t in quad.create_triangles().into_iter() {
-            self.add_triangle(t);
+    pub fn from_obj(obj_path: &str) -> Result<MeshBuilder, FileError> {
+        let mut builder = Self::new();
+        for tria in read_obj(obj_path)? {
+            builder.add_triangle(&tria);
         }
-        self.quads.push(quad);
-        self
+        Ok(builder)
     }
 
     fn add_triangle(&mut self, triangle: &Triangle) {
@@ -68,7 +65,7 @@ impl MeshBuilder {
                 return Err(GraphicsError::from(e));
             }
         };
-        let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint, self.quads);
+        let mesh = Mesh::new(vao, vbos, self.index_buffer.len() as GLuint);
         Ok(mesh)
     }
 

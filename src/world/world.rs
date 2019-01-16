@@ -2,8 +2,8 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use world::{ Camera, Layer, traits::{ Translatable, Rotatable, Updatable, Renderable } };
+use graphics::{ MeshBuilder, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use world::{ Object, Camera, Layer, traits::{ Translatable, Rotatable, Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
 
@@ -12,6 +12,7 @@ pub struct World {
     camera: Camera,
     height_map: HeightMap,
     layers: Vec<Layer>,
+    test_object: Object
 }
 
 impl World {
@@ -29,11 +30,14 @@ impl World {
         height_noise.set_range((0., 5.));
         let height_map = create_height_map(LAYER_SIZE, &height_noise);
 
+        let mut test_object = Object::new(MeshBuilder::from_obj("resources/test.obj")?.finish()?);
+
         let mut world = World {
             texture_array: texture_array,
             camera: Camera::default(),
             height_map: height_map,
-            layers: Vec::new()
+            layers: Vec::new(),
+            test_object: test_object
         };
 
         world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
@@ -70,9 +74,11 @@ impl World {
     pub fn render(&self, shader: &ShaderProgram) -> Result<(), GraphicsError> {
         self.texture_array.activate();
 
-        for layer in self.layers.iter().rev() {
+        self.test_object.render(&self.camera, shader)?;
+
+        /*for layer in self.layers.iter().rev() {
             layer.render(&self.camera, shader)?;
-        }
+        }*/
         self.texture_array.deactivate();
         Ok(())
     }
@@ -80,6 +86,7 @@ impl World {
 
 impl Updatable for World {
     fn tick(&mut self, time_passed: u32) {
+        self.test_object.mod_rotation(Vector3::new(0., 0., 5f32.to_radians()));
     }
 }
 
