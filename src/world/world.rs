@@ -2,7 +2,7 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ mesh::{ Mesh, MeshManager }, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use graphics::{ Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
 use world::{ Object, Camera, Layer, WorldError, traits::{ Translatable, Rotatable, Scalable, Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
@@ -49,8 +49,8 @@ impl World {
             test_object: test_object
         };
 
-        //world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
-        //world.create_layers(20)?;
+        world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
+        world.create_layers(20)?;
 
         Ok(world)
     }
@@ -66,7 +66,7 @@ impl World {
 
     fn create_top_layer(&mut self, top_level: i32, layer_size: (i32, i32)) -> Result<(), WorldError> {
         debug_assert!(self.layers.is_empty());
-        let top_layer = Layer::new_top(top_level, layer_size, &self.height_map)?;
+        let top_layer = Layer::new_top(top_level, layer_size, &self.height_map, &self.mesh_manager)?;
         self.layers.push(top_layer);
         Ok(())
     }
@@ -74,7 +74,7 @@ impl World {
     fn create_layers(&mut self, count: i32) -> Result<(), WorldError> {
         debug_assert!(!self.layers.is_empty());
         for _level in 0..count {
-            let layer = Layer::new(&self.layers[self.layers.len() - 1], &self.height_map)?;
+            let layer = Layer::new(&self.layers[self.layers.len() - 1], &self.height_map, &self.mesh_manager)?;
             self.layers.push(layer);
         }
         Ok(())

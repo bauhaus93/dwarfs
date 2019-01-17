@@ -5,6 +5,7 @@ use gl::types::GLfloat;
 use glm::{ GenNum, Vector3, Vector4 };
 
 use graphics::{ create_rotation_matrix };
+use utility::cmp_vec;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -16,15 +17,15 @@ pub struct Vertex {
 impl Vertex {
 
     pub fn get_pos(&self) -> Vector3<GLfloat> {
-        self.pos.clone()
+        self.pos
     }
 
     pub fn get_uv(&self) -> Vector3<GLfloat> {
-        self.uv.clone()
+        self.uv
     }
 
     pub fn get_normal(&self) -> Vector3<GLfloat> {
-        self.normal.clone()
+        self.normal
     }
 
     pub fn set_pos(&mut self, new_pos: Vector3<GLfloat>) {
@@ -66,19 +67,6 @@ impl Default for Vertex {
             normal: Vector3::from_s(0.), 
         }
     }
-}
-
-fn cmp_vec(lhs: &Vector3<GLfloat>, rhs: &Vector3<GLfloat>) -> Ordering {
-    const THRESHOLD: GLfloat = 1e-3;
-    for i in 0..3 {
-        let diff = lhs[i] - rhs[i];
-        if diff < -THRESHOLD {
-            return Ordering::Less;
-        } else if diff > THRESHOLD {
-            return Ordering::Greater;
-        }
-    }
-    Ordering::Equal
 }
 
 impl PartialEq for Vertex {

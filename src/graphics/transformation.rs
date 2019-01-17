@@ -3,6 +3,10 @@ use glm::{ Vector3, Vector4, Matrix4, normalize };
 use gl::types::GLfloat;
 use num_traits::One;
 
+pub fn create_transformation_matrix(translation: Vector3<f32>, rotation: Vector3<f32>, scale: Vector3<f32>) -> Matrix4<GLfloat> {
+    create_translation_matrix(translation) * create_rotation_matrix(rotation) * create_scale_matrix(scale) 
+}
+
 pub fn create_translation_matrix(translation: Vector3<f32>) -> Matrix4<GLfloat> {
     glm::ext::translate(&Matrix4::<GLfloat>::one(), translation)
 }

@@ -6,7 +6,7 @@ use glm::GenNum;
 use num_traits::One;
 use glm::{ Vector3, Matrix4 };
 
-use graphics::{ create_translation_matrix, create_rotation_matrix, create_scale_matrix };
+use graphics::{ create_transformation_matrix };
 use world::traits::{ Translatable, Rotatable, Scalable };
 
 pub struct Model {
@@ -18,9 +18,7 @@ pub struct Model {
 
 impl Model {
     fn update_matrix(&mut self) {
-        self.matrix = create_translation_matrix(self.position.clone()) *
-                      create_rotation_matrix(self.rotation.clone()) *
-                      create_scale_matrix(self.scale.clone());
+        self.matrix = create_transformation_matrix(self.position, self.rotation, self.scale);
     }
     pub fn get_matrix(&self) -> Matrix4<GLfloat> {
         self.matrix.clone()

@@ -47,11 +47,11 @@ impl Camera {
     fn update_projection(&mut self) {
         self.projection_matrix = match self.projection {
             Projection::Perspective { fov, aspect_ratio, near, far } => {
-                info!("projection update: perspective, fov = {}, aspect ratio = {}, near = {}, far = {}", fov.to_degrees(), aspect_ratio, near, far);
+                trace!("projection update: perspective, fov = {}, aspect ratio = {}, near = {}, far = {}", fov.to_degrees(), aspect_ratio, near, far);
                 perspective(fov, aspect_ratio, near, far)
             },
             Projection::Orthographic { width, aspect_ratio } => {
-                info!("projection update: orthographic, width = {}, aspect ratio = {}", width, aspect_ratio);
+                trace!("projection update: orthographic, width = {}, aspect ratio = {}", width, aspect_ratio);
                 create_orthographic_projection_matrix(-width / 2., width / 2., width / 2. / aspect_ratio, -width / 2. / aspect_ratio, -2. * width, 2. * width)
             }
         }

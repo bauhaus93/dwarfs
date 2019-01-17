@@ -68,9 +68,7 @@ impl Mesh {
     }
 
     pub fn copy_triangles(&self) -> Vec<Triangle> {
-        let mut copy = Vec::new();
-        self.triangles.iter().for_each(|t| copy.push(*t));
-        copy
+        self.triangles.clone()
     }
 
     pub fn render(&self) -> Result<(), MeshError> {
