@@ -8,8 +8,9 @@ use glm::Vector3;
 use application::ApplicationError;
 
 use graphics::{ Mesh, MeshManager, Triangle, ShaderProgram, GraphicsError };
-use world::{ Camera, Object, Noise, WorldError, traits::{ Renderable, Translatable, Scalable } };
+use world::{ Camera, Object, Noise, WorldError, traits::Renderable };
 use world::height_map::HeightMap;
+use utility::traits::{ Translatable, Rotatable, Scalable };
 use super::{ Field, create_mesh };
 
 type FieldMap = HashMap<(i32, i32), Field>;
@@ -32,7 +33,7 @@ impl Layer {
         let mesh = create_mesh(&fields, mesh_manager, Some(&upper_layer.fields))?;
         debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
         let mut object = Object::new(Rc::new(mesh));
-        object.set_position(Vector3::new(0., 0., level as f32));
+        object.set_translation(Vector3::new(0., 0., level as f32));
         Ok(Self {
             object: object,
             level: level,
@@ -49,7 +50,7 @@ impl Layer {
         let mesh = create_mesh(&fields, mesh_manager, None)?;
         debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
         let mut object = Object::new(Rc::new(mesh));
-        object.set_position(Vector3::new(0., 0., level as f32));
+        object.set_translation(Vector3::new(0., 0., level as f32));
         Ok(Self {
             object: object,
             level: level,

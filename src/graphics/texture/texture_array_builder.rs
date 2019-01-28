@@ -10,13 +10,13 @@ use super::TextureArray;
 
 pub struct TextureArrayBuilder {
     atlas_path: String,
-    texture_size: (u32, u32),
-    texture_origins: Vec<(u32, u32)>
+    texture_size: [u32; 2],
+    texture_origins: Vec<[u32; 3]>
 }
 
 impl TextureArrayBuilder {
 
-    pub fn new(atlas_path: &str, texture_size: (u32, u32)) -> TextureArrayBuilder {
+    pub fn new(atlas_path: &str, texture_size: [u32; 2]) -> TextureArrayBuilder {
         TextureArrayBuilder {
             atlas_path:  atlas_path.to_string(),
             texture_size: texture_size,
@@ -24,7 +24,7 @@ impl TextureArrayBuilder {
         }
     }
 
-    pub fn add_texture(mut self, origin: (u32, u32)) -> Self {
+    pub fn add_texture(mut self, origin: [u32; 3]) -> Self {
         self.texture_origins.push(origin);
         self
     }
@@ -32,13 +32,13 @@ impl TextureArrayBuilder {
     pub fn finish(self) -> Result<TextureArray, GraphicsError> {
         info!("Creating texture array");
         let mipmaps = {
-            let dim = min(self.texture_size.0, self.texture_size.1) as f32;
+            let dim = min(self.texture_size[0], self.texture_size[1]) as f32;
             dim.log(2.0) as u32
         };
         let layer_count: u32 = self.texture_origins.len() as u32;
-        debug!("Size = {}x{}x{}, mipmaps = {}", self.texture_size.0, self.texture_size.1, layer_count, mipmaps);
+        debug!("Size = {}x{}x{}, mipmaps = {}", self.texture_size[0], self.texture_size[1], layer_count, mipmaps);
         let texture_id = create_texture(
-            (self.texture_size.0 as GLsizei, self.texture_size.1 as GLsizei),
+            (self.texture_size[0] as GLsizei, self.texture_size[1] as GLsizei),
             layer_count as GLsizei,
             mipmaps as GLsizei
         )?;
@@ -71,7 +71,7 @@ impl TextureArrayBuilder {
         }
         let texture_array = TextureArray::new(
             texture_id,
-            (self.texture_size.0, self.texture_size.1, layer_count) 
+            (self.texture_size[0], self.texture_size[1], layer_count) 
         );
         Ok(texture_array)
     }
@@ -110,31 +110,31 @@ fn create_texture(size: (GLsizei, GLsizei), layers: GLsizei, mipmaps: GLsizei) -
     Ok(id)
 }
 
-fn add_subimages(texture_id: GLuint, img: image::RgbaImage, sub_size: (u32, u32), sub_origins: &[(u32, u32)])  -> Result<(), GraphicsError>{ 
-    for (layer, origin) in sub_origins.iter().enumerate() {
-        trace!("Adding subimage, origin = {}/{}", origin.0, origin.1);
-        let sub_img = img.view(origin.0, origin.1, sub_size.0, sub_size.1).to_image();
+fn add_subimages(texture_id: GLuint, img: image::RgbaImage, sub_size: [u32; 2], sub_origins: &[[u32; 3]])  -> Result<(), GraphicsError>{ 
+    for origin in sub_origins.iter() {
+        trace!("Adding subimage, origin = {}/{}", origin[0], origin[1]);
+        let sub_img = img.view(origin[0], origin[1], sub_size[0], sub_size[1]).to_image();
         let pixels: Vec<u8> = sub_img.into_raw();
         add_subimage(
             texture_id,
-            (sub_size.0 as GLsizei, sub_size.1 as GLsizei),
-            layer as GLsizei,
+            [sub_size[0] as GLsizei, sub_size[1] as GLsizei],
+            origin[2] as GLsizei,
             &pixels
         )?;
     }
     Ok(())
 }
 
-fn add_subimage(texture_id: GLuint, size: (GLsizei, GLsizei), layer: GLsizei, sub_image: &[u8]) -> Result<(), OpenglError> {
+fn add_subimage(texture_id: GLuint, size: [GLsizei; 2], layer: GLsizei, sub_image: &[u8]) -> Result<(), OpenglError> {
     debug_assert!(texture_id != 0);
     trace!("Adding subimage, texture id = {}, size = {}x{}, layer = {}",
-        texture_id, size.0, size.1, layer);
+        texture_id, size[0], size[1], layer);
     unsafe {
         gl::TexSubImage3D(
             gl::TEXTURE_2D_ARRAY,
             0,
             0, 0, layer,
-            size.0, size.1, 1,
+            size[0], size[1], 1,
             gl::RGBA,
             gl::UNSIGNED_BYTE,
             sub_image.as_ptr() as * const _

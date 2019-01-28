@@ -9,7 +9,8 @@ use super::ApplicationError;
 use super::window;
 use graphics;
 use world;
-use world::traits::{ Translatable, Updatable };
+use world::traits::Updatable;
+use utility::traits::Translatable;
 
 pub struct Application {
     events_loop: glutin::EventsLoop,
@@ -96,12 +97,12 @@ impl Application {
         match (input.virtual_keycode, input.state) {
             (Some(keycode), glutin::ElementState::Pressed) => {
                 match keycode {
-                    glutin::VirtualKeyCode::A => self.world.get_camera_mut().mod_position(Vector3::new(-1., 1., 0.)),
-                    glutin::VirtualKeyCode::D => self.world.get_camera_mut().mod_position(Vector3::new(1., -1., 0.)),
-                    glutin::VirtualKeyCode::W => self.world.get_camera_mut().mod_position(Vector3::new(1., 1., 0.)),
-                    glutin::VirtualKeyCode::S => self.world.get_camera_mut().mod_position(Vector3::new(-1., -1., 0.)),
-                    glutin::VirtualKeyCode::R => self.world.get_camera_mut().mod_position(Vector3::new(0., 0., 1.)),
-                    glutin::VirtualKeyCode::F => self.world.get_camera_mut().mod_position(Vector3::new(0., 0., -1.)),
+                    glutin::VirtualKeyCode::A => self.world.get_camera_mut().mod_translation(Vector3::new(-1., 1., 0.)),
+                    glutin::VirtualKeyCode::D => self.world.get_camera_mut().mod_translation(Vector3::new(1., -1., 0.)),
+                    glutin::VirtualKeyCode::W => self.world.get_camera_mut().mod_translation(Vector3::new(1., 1., 0.)),
+                    glutin::VirtualKeyCode::S => self.world.get_camera_mut().mod_translation(Vector3::new(-1., -1., 0.)),
+                    glutin::VirtualKeyCode::R => self.world.get_camera_mut().mod_translation(Vector3::new(0., 0., 1.)),
+                    glutin::VirtualKeyCode::F => self.world.get_camera_mut().mod_translation(Vector3::new(0., 0., -1.)),
                     _ => {}
                 }
             },

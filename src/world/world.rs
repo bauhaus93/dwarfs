@@ -3,9 +3,10 @@ use gl::types::GLfloat;
 
 use application::ApplicationError;
 use graphics::{ Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
-use world::{ Object, Camera, Layer, WorldError, traits::{ Translatable, Rotatable, Scalable, Updatable, Renderable } };
+use world::{ Object, Camera, Layer, WorldError, traits::{ Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
+use utility::traits::{ Translatable, Rotatable, Scalable };
 
 pub struct World {
     texture_array: TextureArray,
@@ -16,12 +17,18 @@ pub struct World {
     test_object: Object
 }
 
+const TEXTURE_LAYER_MUD: i32 = 0;
+
+const TEXTURES: [[i32; 3]; 1] = [
+    [0, 0, TEXTURE_LAYER_MUD]
+];
+
 impl World {
     pub fn new() -> Result<World, WorldError> {
         const TOP_LEVEL: i32 = 5;
         const LAYER_SIZE: (i32, i32) = (128, 128);
-        let texture_array = TextureArrayBuilder::new("resources/atlas.png", (32, 32))
-            .add_texture((0, 0))
+        let texture_array = TextureArrayBuilder::new("resources/atlas.png", [32, 32])
+            .add_texture([0, 0, 0])
             .finish()?;
 
         let mut height_noise = OctavedNoise::default();
@@ -32,6 +39,7 @@ impl World {
         let height_map = create_height_map(LAYER_SIZE, &height_noise);
 
         let mut mesh_manager = MeshManager::default();
+        mesh_manager.add_mesh(Mesh::from_obj("resources/cube.obj")?, "block");
 
         let test_mesh = match Mesh::from_obj("resources/test.obj") {
             Ok(mesh) => mesh,
@@ -49,8 +57,8 @@ impl World {
             test_object: test_object
         };
 
-        world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
-        world.create_layers(20)?;
+        //world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
+        //world.create_layers(20)?;
 
         Ok(world)
     }

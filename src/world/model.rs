@@ -7,7 +7,7 @@ use num_traits::One;
 use glm::{ Vector3, Matrix4 };
 
 use graphics::{ create_transformation_matrix };
-use world::traits::{ Translatable, Rotatable, Scalable };
+use utility::traits::{ Translatable, Rotatable, Scalable };
 
 pub struct Model {
     position: Vector3<f32>,
@@ -47,11 +47,11 @@ impl fmt::Display for Model {
 }
 
 impl Translatable for Model {
-     fn set_position(&mut self, new_position: Vector3<f32>) {
-        self.position = new_position;
+     fn set_translation(&mut self, new_translation: Vector3<f32>) {
+        self.position = new_translation;
         self.update_matrix();
     }
-    fn get_position(&self) -> Vector3<f32> {
+    fn get_translation(&self) -> Vector3<f32> {
         self.position.clone()
     }
 }

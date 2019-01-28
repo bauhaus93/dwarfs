@@ -5,7 +5,8 @@ use gl::types::GLfloat;
 use num_traits::One;
 
 use graphics::{ Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix };
-use world::{ Model, traits::{ Translatable, Rotatable } };
+use world::{ Model };
+use utility::traits::{ Translatable, Rotatable };
 
 pub struct Camera {
     model: Model,
@@ -39,8 +40,8 @@ impl Camera {
     fn update_view(&mut self) {
         let direction = create_direction(self.model.get_rotation());
         self.view_matrix = look_at(
-            self.model.get_position(),
-            self.model.get_position().add(direction),
+            self.model.get_translation(),
+            self.model.get_translation().add(direction),
             Vector3::<f32>::new(0., 0., 1.));
     }
 
@@ -68,7 +69,7 @@ impl Default for Camera {
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };
-        camera.mod_position(Vector3::new(0., 0., 1.));
+        camera.mod_translation(Vector3::new(0., 0., 1.));
         camera.set_rotation(Vector3::new(45f32.to_radians(), 125f32.to_radians(), 0.));
         camera.update_projection();
         camera
@@ -76,12 +77,12 @@ impl Default for Camera {
 }
 
 impl Translatable for Camera {
-    fn set_position(&mut self, new_position: Vector3<f32>) {
-        self.model.set_position(new_position);
+    fn set_translation(&mut self, new_translation: Vector3<f32>) {
+        self.model.set_translation(new_translation);
         self.update_view();
     }
-    fn get_position(&self) -> Vector3<f32> {
-        self.model.get_position()
+    fn get_translation(&self) -> Vector3<f32> {
+        self.model.get_translation()
     }
 }
 

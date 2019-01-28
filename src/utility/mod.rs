@@ -2,6 +2,7 @@ pub mod read_file;
 pub mod read_obj;
 pub mod file_error;
 pub mod cmp;
+pub mod traits;
 
 pub use self::read_file::read_file;
 pub use self::read_obj::read_obj;

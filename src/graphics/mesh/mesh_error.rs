@@ -9,6 +9,7 @@ use utility::FileError;
 pub enum MeshError {
     File(FileError),
     Opengl(OpenglError),
+    MeshNotFound(String)
 }
 
 impl From<FileError> for MeshError {
@@ -29,6 +30,7 @@ impl Error for MeshError {
         match *self {
             MeshError::File(_) => "file",
             MeshError::Opengl(_) => "opengl",
+            MeshError::MeshNotFound(_) => "mesh not found"
         }
     }
 
@@ -36,6 +38,7 @@ impl Error for MeshError {
         match *self {
             MeshError::File(ref err) => Some(err),
             MeshError::Opengl(ref err) => Some(err),
+            MeshError::MeshNotFound(_) => None
         }
     }
 }
@@ -44,7 +47,8 @@ impl fmt::Display for MeshError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             MeshError::File(ref err) => write!(f, "{}/{}", self.description(), err),
-            MeshError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err)
+            MeshError::Opengl(ref err) => write!(f, "{}/{}", self.description(), err),
+            MeshError::MeshNotFound(ref s) => write!(f, "{}: id '{}' not existing", self.description(), s)
         }
     }
 }

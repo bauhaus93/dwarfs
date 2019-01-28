@@ -2,7 +2,8 @@ use std::rc::Rc;
 use glm::{ Vector3 };
 
 use graphics::{ Mesh, ShaderProgram, GraphicsError };
-use world::{ Camera, Model, traits::{ Translatable, Rotatable, Scalable, Renderable } };
+use world::{ Camera, Model, traits::Renderable };
+use utility::traits::{ Rotatable, Translatable, Scalable };
 
 pub struct Object {
     model: Model,
@@ -28,11 +29,11 @@ impl Renderable for Object {
 }
 
 impl Translatable for Object {
-    fn set_position(&mut self, new_position: Vector3<f32>) {
-        self.model.set_position(new_position);
+    fn set_translation(&mut self, new_translation: Vector3<f32>) {
+        self.model.set_translation(new_translation);
     }
-    fn get_position(&self) -> Vector3<f32> {
-        self.model.get_position()
+    fn get_translation(&self) -> Vector3<f32> {
+        self.model.get_translation()
     }
 }
 
