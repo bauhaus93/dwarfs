@@ -7,6 +7,7 @@ mod object;
 mod layer;
 mod noise;
 mod height_map;
+mod direction;
 
 pub use self::world::World;
 pub use self::model::Model;
@@ -17,3 +18,4 @@ pub use self::noise::Noise;
 pub use self::noise::OctavedNoise;
 pub use self::noise::SimplexNoise;
 pub use self::world_error::WorldError;
+pub use self::direction::Direction;

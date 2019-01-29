@@ -2,10 +2,10 @@ use std::ops::Add;
 use std::cmp::Ordering;
 use std::fmt;
 use gl::types::GLfloat;
-use glm::{ GenNum, Vector3, Matrix4 };
+use glm::{ GenNum, Vector3, Matrix4, builtin::{ normalize } };
 
 use graphics::{ create_rotation_matrix };
-use utility::{ cmp_vec, traits::Transformable };
+use utility::{ cmp_vec, traits::Transformable  };
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -43,14 +43,21 @@ impl Vertex {
     pub fn set_uv_layer(&mut self, layer: u32) {
         self.uv.z = layer as GLfloat;
     }
+
+    pub fn on_plane(&self, axis: usize, value: GLfloat) -> bool {
+        debug_assert!(axis < 3);
+        (self.pos[axis] - value).abs() < 1e-3
+    }
 }
 
 impl Transformable for Vertex {
     fn transform(&mut self, transformation_matrix: Matrix4<GLfloat>) {
+        let old_pos = self.pos;
         self.pos = (transformation_matrix * self.pos.extend(1.)).truncate(3);
-        self.normal = (transformation_matrix * (self.normal - self.pos).extend(1.)).truncate(3);
+        self.normal = (transformation_matrix * self.normal.extend(1.)).truncate(3) - (self.pos - old_pos);
     }
 }
+
 
 impl Default for Vertex {
     fn default() -> Self {

@@ -13,19 +13,19 @@ use world::height_map::HeightMap;
 use utility::traits::{ Translatable, Rotatable, Scalable };
 use super::{ Field, create_mesh };
 
-type FieldMap = HashMap<(i32, i32), Field>;
+type FieldMap = HashMap<[i32; 2], Field>;
 
 pub struct Layer {
     object: Object,
     level: i32,
-    size: (i32, i32),
+    size: [i32; 2],
     fields: FieldMap,
 }
 
 impl Layer {
-    pub fn new(level: i32, size: (i32, i32), height_map: &HeightMap, mesh_manager: &MeshManager) -> Result<Self, WorldError> {
-        debug!("Creating new layer, level = {}, size = {}x{}", level, size.0, size.1);
-        debug_assert!(size.0 >= 0 && size.1 >= 0);
+    pub fn new(level: i32, size: [i32; 2], height_map: &HeightMap, mesh_manager: &MeshManager) -> Result<Self, WorldError> {
+        debug!("Creating new layer, level = {}, size = {}x{}", level, size[0], size[1]);
+        debug_assert!(size[0]>= 0 && size[1] >= 0);
 
         let fields = create_default_field_map(level, height_map);
         let mesh = create_mesh(&fields, mesh_manager)?;

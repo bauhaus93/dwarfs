@@ -7,19 +7,35 @@ use glm::{ Vector3, GenNum, builtin::{ cross, normalize } };
 
 use utility::{ cmp_vec, traits::{ Translatable, Scalable } };
 use graphics::{  GraphicsError, mesh::{ MeshError, Node, Mesh, MeshManager, Triangle } };
-use world::WorldError;
+use world::{ WorldError, Direction };
 use super::Field;
 
-struct TriangleEntry {
-    triangle: Triangle,
-    visible: bool
-}
-
-pub fn create_mesh(fields: &HashMap<(i32, i32), Field>, mesh_manager: &MeshManager) -> Result<Mesh, MeshError> {
+pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager) -> Result<Mesh, MeshError> {
+    const NEIGHBOURS: [(Direction, [i32; 2]); 4] = [
+        (Direction::NORTH, [0, -1]),
+        (Direction::SOUTH, [0, 1]),
+        (Direction::EAST, [1, 0]),
+        (Direction::WEST, [-1, 0]),
+    ];
     let mut mesh = Mesh::default();
     for (pos, field) in fields {
-        let translation: Vector3<f32> = Vector3::new(pos.0 as f32, pos.1 as f32, 0.);
-        let mut node = create_cube_node(mesh_manager)?;
+        let translation: Vector3<f32> = Vector3::new(pos[0] as f32, pos[1] as f32, 0.);
+        let mut triangles = mesh_manager.get_mesh("cube")?.copy_triangles();
+
+        for (dir, offset) in NEIGHBOURS.iter() {
+            let nb_pos = [pos[0] + offset[0],
+                          pos[1] + offset[1]];
+            match fields.get(&nb_pos) {
+                Some(_f) => {
+                    remove_border_triangles(&mut triangles, *dir);
+                },
+                _ => {}
+            }
+        }
+        //TODO remove triangles by normals
+
+        let mut node = Node::default();
+        node.add_triangles(triangles);
         node.set_translation(translation);
         mesh.add_node(node);
     }
@@ -27,12 +43,16 @@ pub fn create_mesh(fields: &HashMap<(i32, i32), Field>, mesh_manager: &MeshManag
     Ok(mesh)
 }
 
-fn create_cube_node(mesh_manager: &MeshManager) -> Result<Node, MeshError> {
-    let mut node = Node::default();
-    let triangles = mesh_manager.get_mesh("cube")?.copy_triangles();
-    node.add_triangles(triangles);
-    node.set_scale(Vector3::from_s(0.5));
-    Ok(node)
+fn remove_border_triangles(triangles: &mut Vec<Triangle>, border: Direction) {
+    let (axis, value): (usize, f32) = match border {
+        Direction::NORTH => (1, -0.5),
+        Direction::SOUTH => (1, 0.5),
+        Direction::EAST => (0, 0.5),
+        Direction::WEST => (0, -0.5),
+        Direction::UP => (2, 0.5),
+        Direction::DOWN => (2, -0.5)
+    };
+    triangles.retain(|t| !t.on_plane(axis, value));
 }
 
 //assumes points ordered ccw
@@ -41,59 +61,3 @@ fn calculate_normal(points: &[Vector3<f32>; 3]) -> Vector3<f32> {
     let b = points[1].sub(points[2]);
     normalize(cross(a, b))
 }
-
-impl TriangleEntry {
-    pub fn new(triangle: Triangle) -> Self {
-        Self {
-            triangle: triangle,
-            visible: true
-        }
-    }
-    pub fn set_invisible(&mut self) {
-        self.visible = false;
-    }
-    pub fn into_triangle(self) -> Option<Triangle> {
-        if self.visible {
-            Some(self.triangle)
-        } else {
-            None
-        }
-    }
-}
-
-impl PartialEq for TriangleEntry {
-    fn eq(&self, other: &Self) -> bool {
-        self.triangle.as_vertices().iter()
-            .zip(other.triangle.as_vertices().iter())
-            .all(|(lhs, rhs)| cmp_vec(&lhs.get_pos(), &rhs.get_pos()) == Ordering::Equal) ||
-        self.triangle.as_vertices().iter().cycle().skip(1).take(3)
-            .zip(other.triangle.as_vertices().iter())
-            .all(|(lhs, rhs)| cmp_vec(&lhs.get_pos(), &rhs.get_pos()) == Ordering::Equal) ||
-        self.triangle.as_vertices().iter().cycle().skip(2).take(3)
-            .zip(other.triangle.as_vertices().iter())
-            .all(|(lhs, rhs)| cmp_vec(&lhs.get_pos(), &rhs.get_pos()) == Ordering::Equal)
-    }
-}
-
-impl Eq for TriangleEntry {}
-
-impl Ord for TriangleEntry {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let iter = self.triangle.as_vertices().iter()
-            .zip(other.triangle.as_vertices().iter());
-        for (lhs, rhs) in iter {
-            let result = cmp_vec(&lhs.get_pos(), &rhs.get_pos());
-            if result != Ordering::Equal {
-                return result;
-            }
-        }
-        Ordering::Equal
-    }
-}
-
-impl PartialOrd for TriangleEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-

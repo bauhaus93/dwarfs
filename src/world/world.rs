@@ -14,7 +14,7 @@ pub struct World {
     height_map: HeightMap,
     mesh_manager: MeshManager,
     top_level: i32,
-    layer_size: (i32, i32),
+    layer_size: [i32; 2],
     layers: Vec<Layer>,
     test_object: Object
 }
@@ -26,9 +26,9 @@ const TEXTURES: [[i32; 3]; 1] = [
 ];
 
 impl World {
-    pub fn new(top_level: i32, layer_size: (i32, i32)) -> Result<World, WorldError> {
+    pub fn new(top_level: i32, layer_size: [i32; 2]) -> Result<World, WorldError> {
         debug_assert!(top_level > 0);
-        debug_assert!(layer_size.0 > 0 && layer_size.1 > 0);
+        debug_assert!(layer_size[0] > 0 && layer_size[1] > 0);
         let texture_array = TextureArrayBuilder::new("resources/atlas.png", [32, 32])
             .add_texture([0, 0, 0])
             .finish()?;
@@ -41,9 +41,9 @@ impl World {
         let height_map = create_height_map(layer_size, &height_noise);
 
         let mut mesh_manager = MeshManager::default();
-        mesh_manager.add_mesh(Mesh::from_obj("resources/cube.obj")?, "cube");
+        mesh_manager.add_mesh(Mesh::from_obj("resources/obj/cube.obj")?, "cube");
 
-        let test_mesh = match Mesh::from_obj("resources/test.obj") {
+        let test_mesh = match Mesh::from_obj("resources/obj/test.obj") {
             Ok(mesh) => mesh,
             Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
         };

@@ -31,7 +31,7 @@ impl Application {
             .add_fragment_shader("resources/shader/FragmentShader.glsl")
             .finish()?;
         
-        let world = world::World::new(5, (128, 128))?;
+        let world = world::World::new(5, [128, 128])?;
         let app = Self {
             events_loop: events_loop,
             window: window,

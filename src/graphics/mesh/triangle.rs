@@ -38,6 +38,11 @@ impl Triangle {
     pub fn as_vertices(&self) -> &[Vertex; 3] {
         &self.vertex
     }
+
+    pub fn on_plane(&self, axis: usize, value: f32) -> bool {
+        debug_assert!(axis < 3);
+        self.vertex.iter().all(|v| v.on_plane(axis, value))
+    }
 }
 
 impl Transformable for Triangle {
