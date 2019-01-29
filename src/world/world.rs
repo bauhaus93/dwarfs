@@ -13,6 +13,8 @@ pub struct World {
     camera: Camera,
     height_map: HeightMap,
     mesh_manager: MeshManager,
+    top_level: i32,
+    layer_size: (i32, i32),
     layers: Vec<Layer>,
     test_object: Object
 }
@@ -24,9 +26,9 @@ const TEXTURES: [[i32; 3]; 1] = [
 ];
 
 impl World {
-    pub fn new() -> Result<World, WorldError> {
-        const TOP_LEVEL: i32 = 5;
-        const LAYER_SIZE: (i32, i32) = (128, 128);
+    pub fn new(top_level: i32, layer_size: (i32, i32)) -> Result<World, WorldError> {
+        debug_assert!(top_level > 0);
+        debug_assert!(layer_size.0 > 0 && layer_size.1 > 0);
         let texture_array = TextureArrayBuilder::new("resources/atlas.png", [32, 32])
             .add_texture([0, 0, 0])
             .finish()?;
@@ -35,30 +37,31 @@ impl World {
         height_noise.set_octaves(4);
         height_noise.set_scale(8e-3);
         height_noise.set_roughness(1e+3);
-        height_noise.set_range((0., 5.));
-        let height_map = create_height_map(LAYER_SIZE, &height_noise);
+        height_noise.set_range((0., top_level as f32));
+        let height_map = create_height_map(layer_size, &height_noise);
 
         let mut mesh_manager = MeshManager::default();
-        mesh_manager.add_mesh(Mesh::from_obj("resources/cube.obj")?, "block");
+        mesh_manager.add_mesh(Mesh::from_obj("resources/cube.obj")?, "cube");
 
         let test_mesh = match Mesh::from_obj("resources/test.obj") {
             Ok(mesh) => mesh,
             Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
         };
         mesh_manager.add_mesh(test_mesh, "test");
-        let test_object = Object::new(mesh_manager.get_mesh("test").unwrap());
+        let test_object = Object::new(mesh_manager.get_mesh_rc("test")?);
 
         let mut world = World {
             texture_array: texture_array,
             camera: Camera::default(),
             height_map: height_map,
             mesh_manager: mesh_manager,
+            top_level: top_level,
+            layer_size: layer_size,
             layers: Vec::new(),
             test_object: test_object
         };
 
-        //world.create_top_layer(TOP_LEVEL, LAYER_SIZE)?;
-        //world.create_layers(20)?;
+        world.extend(20)?;
 
         Ok(world)
     }
@@ -71,18 +74,10 @@ impl World {
         &mut self.camera
     }
 
-
-    fn create_top_layer(&mut self, top_level: i32, layer_size: (i32, i32)) -> Result<(), WorldError> {
-        debug_assert!(self.layers.is_empty());
-        let top_layer = Layer::new_top(top_level, layer_size, &self.height_map, &self.mesh_manager)?;
-        self.layers.push(top_layer);
-        Ok(())
-    }
-
-    fn create_layers(&mut self, count: i32) -> Result<(), WorldError> {
+    fn extend(&mut self, count: i32) -> Result<(), WorldError> {
         debug_assert!(!self.layers.is_empty());
-        for _level in 0..count {
-            let layer = Layer::new(&self.layers[self.layers.len() - 1], &self.height_map, &self.mesh_manager)?;
+        for _ in 0..count {
+            let layer = Layer::new(self.top_level - self.layers.len() as i32, self.layer_size,  &self.height_map, &self.mesh_manager)?;
             self.layers.push(layer);
         }
         Ok(())
@@ -93,9 +88,9 @@ impl World {
 
         self.test_object.render(&self.camera, shader)?;
 
-        /*for layer in self.layers.iter().rev() {
+        for layer in self.layers.iter().rev() {
             layer.render(&self.camera, shader)?;
-        }*/
+        }
         self.texture_array.deactivate();
         Ok(())
     }

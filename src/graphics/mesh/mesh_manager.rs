@@ -1,7 +1,7 @@
 use std::rc::Rc;
 use std::collections::{ BTreeMap, btree_map::Entry };
 
-use super::Mesh;
+use super::{ Mesh, MeshError };
 
 pub struct MeshManager {
     mesh_map: BTreeMap<String, Rc<Mesh>>
@@ -20,10 +20,16 @@ impl MeshManager {
         }
     }
 
-    pub fn get_mesh(&self, id: &str) -> Option<Rc<Mesh>> {
+    pub fn get_mesh_rc(&self, id: &str) -> Result<Rc<Mesh>, MeshError> {
         match self.mesh_map.get(id) {
-            Some(m) => Some(m.clone()),
-            _ => Option::None
+            Some(m) => Ok(m.clone()),
+            _ => Err(MeshError::MeshNotFound(id.to_string()))
+        }
+    }
+    pub fn get_mesh(&self, id: &str) -> Result<&Mesh, MeshError> {
+        match self.mesh_map.get(id) {
+            Some(m) => Ok(m),
+            _ => Err(MeshError::MeshNotFound(id.to_string()))
         }
     }
 }

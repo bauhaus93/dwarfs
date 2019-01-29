@@ -10,12 +10,20 @@ use graphics::{ check_opengl_error, OpenglError, mesh::{ Vertex, Triangle } };
 use super::{ VAO, Node, MeshError };
 
 pub struct Mesh {
-    vao: VAO,
+    vao: Option<VAO>,
     nodes: Vec<Node>
 }
 
 
 impl Mesh {
+
+    pub fn build_vao(&mut self) -> Result<(), MeshError> {
+        let triangles = self.copy_triangles();
+        if triangles.len() > 0 {
+            self.vao = Some(VAO::new(&triangles)?);
+        }
+        Ok(())
+    }
     pub fn from_obj(obj_path: &str) -> Result<Mesh, MeshError> {
         Self::from_triangles(&read_obj(obj_path)?)
     }
@@ -24,7 +32,10 @@ impl Mesh {
         self.nodes.push(node);
     }
     pub fn get_vertex_count(&self) -> u32 {
-        self.vao.get_index_count()
+        match self.vao {
+            Some(ref vao) => vao.get_index_count(),
+            _ => 0
+        }
     }
 
     pub fn from_triangles(triangles: &[Triangle]) -> Result<Mesh, MeshError> {
@@ -36,13 +47,33 @@ impl Mesh {
         nodes.push(node);
         Ok(
             Self {
-                vao: vao,
+                vao: Some(vao),
                 nodes: nodes
             }
         )
     }
 
+    pub fn copy_triangles(&self) -> Vec<Triangle> {
+        let mut triangles = Vec::new();
+        for node in self.nodes.iter() {
+            triangles.extend(node.create_transformed_triangles());
+        }
+        triangles
+    }
+
     pub fn render(&self) -> Result<(), MeshError> {
-        self.vao.render()
+        match self.vao {
+            Some(ref vao) => vao.render(),
+            None => { Ok(()) }
+        }
+    }
+}
+
+impl Default for Mesh {
+    fn default() -> Self {
+        Self {
+            vao: None,
+            nodes: Vec::new()
+        }
     }
 }

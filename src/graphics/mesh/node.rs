@@ -25,6 +25,9 @@ impl Node {
     pub fn add_triangle(&mut self, triangle: Triangle) {
         self.triangles.push(triangle);
     }
+    pub fn add_triangles(&mut self, triangles: Vec<Triangle>) {
+        self.triangles.extend(triangles);
+    }
 }
 
 impl Default for Node {

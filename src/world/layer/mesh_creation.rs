@@ -1,11 +1,12 @@
 use std::collections::{ HashMap, BTreeSet };
 use std::cmp::Ordering;
+use std::ops::{ Sub };
 
 use gl::types::GLfloat;
-use glm::Vector3;
+use glm::{ Vector3, builtin::{ cross, normalize } };
 
-use utility::cmp_vec;
-use graphics::{ Mesh, MeshManager, Triangle, GraphicsError, mesh::MeshError };
+use utility::{ cmp_vec, traits::Translatable };
+use graphics::{  GraphicsError, mesh::{ MeshError, Node, Mesh, MeshManager, Triangle } };
 use world::WorldError;
 use super::Field;
 
@@ -14,36 +15,30 @@ struct TriangleEntry {
     visible: bool
 }
 
-pub fn create_mesh(fields: &HashMap<(i32, i32), Field>, mesh_manager: &MeshManager, upper_fields: Option<&HashMap<(i32, i32), Field>>) -> Result<Mesh, MeshError> {
-    /*let mut triangle_entries: BTreeSet<TriangleEntry> = BTreeSet::new();
-
+pub fn create_mesh(fields: &HashMap<(i32, i32), Field>, mesh_manager: &MeshManager) -> Result<Mesh, MeshError> {
+    let mut mesh = Mesh::default();
     for (pos, field) in fields {
-        let mut field_triangles = match mesh_manager.get_mesh("block") {
-            Some(mesh) => mesh.copy_triangles(),
-            None => return Err(MeshError::MeshNotFound("block".to_string()))
-        };
-        for mut t in field_triangles.into_iter() {
-            t.translate_vertices(Vector3::new(2. * pos.0 as f32, 2. * pos.1 as f32, 0.));
-            let mut entry = TriangleEntry::new(t);
-            if triangle_entries.contains(&entry) {
-                entry.set_invisible();
-                triangle_entries.replace(entry);
-                debug!("Made invisible!");
-            } else {
-                triangle_entries.insert(entry);
-            }
-        }
+        let translation: Vector3<f32> = Vector3::new(pos.0 as f32, pos.1 as f32, 0.);
+        let mut node = create_cube_node(mesh_manager)?;
+        node.set_translation(translation);
+        mesh.add_node(node);
     }
-    let mut triangles: Vec<Triangle> = Vec::with_capacity(triangle_entries.len());
-    for entry in triangle_entries.into_iter() {
-        match entry.into_triangle() {
-            Some(t) => triangles.push(t),
-            _ => {}
-        }
-    }
-    let mesh = Mesh::from_triangles(triangles)?;
-    Ok(mesh)*/
-    Err(MeshError::MeshNotFound("LEL".to_string()))
+    mesh.build_vao()?;
+    Ok(mesh)
+}
+
+fn create_cube_node(mesh_manager: &MeshManager) -> Result<Node, MeshError> {
+    let mut node = Node::default();
+    let triangles = mesh_manager.get_mesh("cube")?.copy_triangles();
+    node.add_triangles(triangles);
+    Ok(node)
+}
+
+//assumes points ordered ccw
+fn calculate_normal(points: &[Vector3<f32>; 3]) -> Vector3<f32> {
+    let a = points[0].sub(points[1]);
+    let b = points[1].sub(points[2]);
+    normalize(cross(a, b))
 }
 
 impl TriangleEntry {
