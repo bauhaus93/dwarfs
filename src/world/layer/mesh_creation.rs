@@ -3,9 +3,9 @@ use std::cmp::Ordering;
 use std::ops::{ Sub };
 
 use gl::types::GLfloat;
-use glm::{ Vector3, builtin::{ cross, normalize } };
+use glm::{ Vector3, GenNum, builtin::{ cross, normalize } };
 
-use utility::{ cmp_vec, traits::Translatable };
+use utility::{ cmp_vec, traits::{ Translatable, Scalable } };
 use graphics::{  GraphicsError, mesh::{ MeshError, Node, Mesh, MeshManager, Triangle } };
 use world::WorldError;
 use super::Field;
@@ -31,6 +31,7 @@ fn create_cube_node(mesh_manager: &MeshManager) -> Result<Node, MeshError> {
     let mut node = Node::default();
     let triangles = mesh_manager.get_mesh("cube")?.copy_triangles();
     node.add_triangles(triangles);
+    node.set_scale(Vector3::from_s(0.5));
     Ok(node)
 }
 

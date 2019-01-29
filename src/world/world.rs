@@ -37,7 +37,7 @@ impl World {
         height_noise.set_octaves(4);
         height_noise.set_scale(8e-3);
         height_noise.set_roughness(1e+3);
-        height_noise.set_range((0., top_level as f32));
+        height_noise.set_range((0., 5.));
         let height_map = create_height_map(layer_size, &height_noise);
 
         let mut mesh_manager = MeshManager::default();
@@ -61,7 +61,7 @@ impl World {
             test_object: test_object
         };
 
-        world.extend(20)?;
+        world.extend(10)?;
 
         Ok(world)
     }
