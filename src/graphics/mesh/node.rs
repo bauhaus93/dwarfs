@@ -52,7 +52,7 @@ impl Translatable for Node {
 
 impl Rotatable for Node {
     fn set_rotation(&mut self, new_rotation: Vector3<GLfloat>) {
-        self.translation = new_rotation;
+        self.rotation = new_rotation;
     }
     fn get_rotation(&self) -> Vector3<GLfloat> {
         self.rotation

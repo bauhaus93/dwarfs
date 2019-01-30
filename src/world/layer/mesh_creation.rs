@@ -21,10 +21,10 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
             FieldType::CUBE => mesh_manager.get_mesh("cube")?.copy_triangles(),
             FieldType::SLOPE(dir) => {
                 match dir {
-                    Direction::NORTH => { node.mod_rotation(Vector3::new(0., 0., -90f32.to_radians())); },
-                    Direction::EAST => {},
-                    Direction::SOUTH => {},
-                    Direction::WEST => {},
+                    Direction::NORTH => { node.set_rotation(Vector3::new(0., 0., 180f32.to_radians())) },
+                    Direction::EAST => { node.set_rotation(Vector3::new(0., 0., 270f32.to_radians())) },
+                    Direction::SOUTH => { },
+                    Direction::WEST => { node.set_rotation(Vector3::new(0., 0., 90f32.to_radians()))},
                     _ => { warn!("Slope with invalid direction supplied to mesh_create"); }
                 }
                 mesh_manager.get_mesh("slope")?.copy_triangles()
@@ -36,7 +36,7 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
                           pos[1] + offset[1]];
             match fields.get(&nb_pos) {
                 Some(_f) => {
-                    remove_border_triangles(&mut triangles, *dir);
+                    //remove_border_triangles(&mut triangles, *dir);
                 },
                 _ => {}
             }

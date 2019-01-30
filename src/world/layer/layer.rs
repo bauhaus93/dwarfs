@@ -58,13 +58,9 @@ fn create_default_field_map(level: i32, size: [i32; 2], height_map: &HeightMap) 
         let mut slope_fields = FieldMap::new();
         for (pos, field) in fields.iter() {
             for (dir, offset) in NEIGHBOUR_RELATION.iter() {
-                match dir {
-                    Direction::NORTH => continue,
-                    _ => {}
-                }
                 let nb_pos = [pos[0] + offset[0], pos[1] + offset[1]];
                 match fields.get(&nb_pos) {
-                    None => {
+                    None if nb_pos[0] >= 0 && nb_pos[0] < size[0] && nb_pos[1] >= 0 && nb_pos[1] < size[1] => {
                         let mut field = Field::default();
                         field.set_type(FieldType::SLOPE(*dir));
                         slope_fields.insert(nb_pos, field);
