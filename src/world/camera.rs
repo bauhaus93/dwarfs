@@ -4,7 +4,7 @@ use glm::ext::{ look_at, perspective };
 use gl::types::GLfloat;
 use num_traits::One;
 
-use graphics::{ Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix };
+use graphics::{ Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix, projection::{ create_default_orthographic, create_default_perspective } };
 use world::{ Model };
 use utility::traits::{ Translatable, Rotatable };
 
@@ -37,6 +37,10 @@ impl Camera {
         self.update_projection();
     }
 
+    pub fn get_projection(&self) -> Projection {
+        self.projection
+    }
+
     fn update_view(&mut self) {
         let direction = create_direction(self.model.get_rotation());
         self.view_matrix = look_at(
@@ -64,12 +68,11 @@ impl Default for Camera {
     fn default() -> Camera {
         let mut camera = Camera {
             model: Model::default(),
-            projection: Projection::Orthographic { width: 20., aspect_ratio: 4./3. },
-            //projection:  Projection::Perspective { fov: 75.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 100. },
+            projection:create_default_orthographic(),
+            //projection:  create_default_perspective(),
             view_matrix: Matrix4::<GLfloat>::one(),
             projection_matrix: Matrix4::<GLfloat>::one()
         };
-        camera.mod_translation(Vector3::new(0., 0., 1.));
         camera.set_rotation(Vector3::new(45f32.to_radians(), 125f32.to_radians(), 0.));
         camera.update_projection();
         camera

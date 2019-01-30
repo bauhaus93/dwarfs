@@ -97,25 +97,25 @@ impl Application {
         match (input.virtual_keycode, input.state) {
             (Some(keycode), glutin::ElementState::Pressed) => {
                 match keycode {
-                    glutin::VirtualKeyCode::A => self.world.get_camera_mut().mod_translation(Vector3::new(-1., 1., 0.)),
-                    glutin::VirtualKeyCode::D => self.world.get_camera_mut().mod_translation(Vector3::new(1., -1., 0.)),
-                    glutin::VirtualKeyCode::W => self.world.get_camera_mut().mod_translation(Vector3::new(1., 1., 0.)),
-                    glutin::VirtualKeyCode::S => self.world.get_camera_mut().mod_translation(Vector3::new(-1., -1., 0.)),
-                    glutin::VirtualKeyCode::R => self.world.get_camera_mut().mod_translation(Vector3::new(0., 0., 1.)),
-                    glutin::VirtualKeyCode::F => self.world.get_camera_mut().mod_translation(Vector3::new(0., 0., -1.)),
+                    glutin::VirtualKeyCode::A => self.world.move_camera(Vector3::new(-1., 1., 0.)),
+                    glutin::VirtualKeyCode::D => self.world.move_camera(Vector3::new(1., -1., 0.)),
+                    glutin::VirtualKeyCode::W => self.world.move_camera(Vector3::new(1., 1., 0.)),
+                    glutin::VirtualKeyCode::S => self.world.move_camera(Vector3::new(-1., -1., 0.)),
+                    glutin::VirtualKeyCode::R => self.world.move_camera(Vector3::new(0., 0., 1.)),
+                    glutin::VirtualKeyCode::F => self.world.move_camera(Vector3::new(0., 0., -1.)),
+                    glutin::VirtualKeyCode::P => self.world.toggle_camera_projection(),
                     _ => {}
                 }
             },
             (_, _) => {}
         }
     }
-
     fn handle_mousewheel(&mut self, delta: glutin::MouseScrollDelta, phase: glutin::TouchPhase) {
         match phase {
             glutin::TouchPhase::Moved => {
                 match delta {
-                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir > 0. => { self.world.get_camera_mut().zoom(0.8); },
-                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir < 0. => { self.world.get_camera_mut().zoom(1.2); },
+                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir > 0. => { self.world.get_camera_mut().zoom(0.9); },
+                    glutin::MouseScrollDelta::LineDelta(_, dir) if dir < 0. => { self.world.get_camera_mut().zoom(1.1); },
                     _ => { warn!("meh."); }
                 }
             },

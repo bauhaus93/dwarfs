@@ -2,7 +2,7 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use graphics::{ Projection, Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError, projection::{ create_default_orthographic, create_default_perspective } };
 use world::{ Object, Camera, Layer, WorldError, traits::{ Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
@@ -42,6 +42,7 @@ impl World {
 
         let mut mesh_manager = MeshManager::default();
         mesh_manager.add_mesh(Mesh::from_obj("resources/obj/cube.obj")?, "cube");
+        mesh_manager.add_mesh(Mesh::from_obj("resources/obj/slope.obj")?, "slope");
 
         let test_mesh = match Mesh::from_obj("resources/obj/test.obj") {
             Ok(mesh) => mesh,
@@ -66,6 +67,29 @@ impl World {
         Ok(world)
     }
 
+    pub fn move_camera(&mut self, mut offset: Vector3<f32>) {
+        let curr_height = self.camera.get_translation().z;
+        match self.camera.get_projection() {
+            Projection::Orthographic { .. } if curr_height > 0. => { offset.z = -curr_height; },
+            Projection::Orthographic { .. } if curr_height + offset.z > 0. => { offset.z = 0.; },
+            _ => {}
+        }
+        self.camera.mod_translation(offset);
+    }
+
+    pub fn toggle_camera_projection(&mut self) {
+        match self.camera.get_projection() {
+            Projection::Orthographic { .. } => {
+                self.camera.set_projection(create_default_perspective());
+                self.camera.set_translation(Vector3::new(-10., -10., 20.));
+            },
+            Projection::Perspective { .. } => {
+                self.camera.set_projection(create_default_orthographic());
+                self.camera.set_translation(Vector3::new(0., 0., 0.));
+            }
+        }
+    }
+
     pub fn get_camera(&self) -> &Camera {
         &self.camera
     }
@@ -88,7 +112,11 @@ impl World {
 
         self.test_object.render(&self.camera, shader)?;
 
-        for layer in self.layers.iter().rev() {
+        let layer_iter = match self.camera.get_translation().z {
+            height if height < 0. => self.layers.iter().skip((self.top_level - self.camera.get_translation().z as i32).max(0) as usize).rev(),
+            _ => self.layers.iter().skip(0).rev()
+        };
+        for layer in layer_iter {
             layer.render(&self.camera, shader)?;
         }
         self.texture_array.deactivate();

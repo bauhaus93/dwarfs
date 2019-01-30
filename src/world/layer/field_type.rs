@@ -1,5 +1,5 @@
-
+#[derive(Copy, Clone)]
 pub enum FieldType {
-    MUD,
-    GRASS
+    CUBE,
+    SLOPE
 }
