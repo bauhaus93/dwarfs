@@ -1,4 +1,4 @@
 target/
+resources/
 *.lock
 *.swp
-*.blend1
