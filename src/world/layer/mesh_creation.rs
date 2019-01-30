@@ -5,24 +5,33 @@ use std::ops::{ Sub };
 use gl::types::GLfloat;
 use glm::{ Vector3, GenNum, builtin::{ cross, normalize } };
 
-use utility::{ cmp_vec, traits::{ Translatable, Scalable } };
+use utility::{ cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
 use graphics::{  GraphicsError, mesh::{ MeshError, Node, Mesh, MeshManager, Triangle } };
 use world::{ WorldError, Direction };
-use super::Field;
+use super::{ Field, FieldType, FieldMaterial, NEIGHBOUR_RELATION };
 
 pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager) -> Result<Mesh, MeshError> {
-    const NEIGHBOURS: [(Direction, [i32; 2]); 4] = [
-        (Direction::NORTH, [0, -1]),
-        (Direction::SOUTH, [0, 1]),
-        (Direction::EAST, [1, 0]),
-        (Direction::WEST, [-1, 0]),
-    ];
     let mut mesh = Mesh::default();
     for (pos, field) in fields {
-        let translation: Vector3<f32> = Vector3::new(pos[0] as f32, pos[1] as f32, 0.);
-        let mut triangles = mesh_manager.get_mesh("cube")?.copy_triangles();
+        let mut node = Node::default();
 
-        for (dir, offset) in NEIGHBOURS.iter() {
+        node.set_translation(Vector3::new(pos[0] as f32, pos[1] as f32, 0.));
+
+        let mut triangles = match field.get_type() {
+            FieldType::CUBE => mesh_manager.get_mesh("cube")?.copy_triangles(),
+            FieldType::SLOPE(dir) => {
+                match dir {
+                    Direction::NORTH => { node.mod_rotation(Vector3::new(0., 0., -90f32.to_radians())); },
+                    Direction::EAST => {},
+                    Direction::SOUTH => {},
+                    Direction::WEST => {},
+                    _ => { warn!("Slope with invalid direction supplied to mesh_create"); }
+                }
+                mesh_manager.get_mesh("slope")?.copy_triangles()
+            }
+        };
+
+        for (dir, offset) in NEIGHBOUR_RELATION.iter() {
             let nb_pos = [pos[0] + offset[0],
                           pos[1] + offset[1]];
             match fields.get(&nb_pos) {
@@ -34,9 +43,8 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
         }
         //TODO remove triangles by normals
 
-        let mut node = Node::default();
         node.add_triangles(triangles);
-        node.set_translation(translation);
+
         mesh.add_node(node);
     }
     mesh.build_vao()?;

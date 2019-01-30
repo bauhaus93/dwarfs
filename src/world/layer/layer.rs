@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use std::collections::{ HashMap };
+use std::collections::{ HashMap, hash_map::Entry };
 use std::time;
 
 use gl::types::GLfloat;
@@ -8,10 +8,10 @@ use glm::Vector3;
 use application::ApplicationError;
 
 use graphics::{ Mesh, MeshManager, Triangle, ShaderProgram, GraphicsError };
-use world::{ Camera, Object, Noise, WorldError, traits::Renderable };
+use world::{ Direction, Camera, Object, Noise, WorldError, traits::Renderable };
 use world::height_map::HeightMap;
 use utility::traits::{ Translatable, Rotatable, Scalable };
-use super::{ Field, create_mesh };
+use super::{ Field, FieldType, create_mesh, NEIGHBOUR_RELATION };
 
 type FieldMap = HashMap<[i32; 2], Field>;
 
@@ -27,7 +27,7 @@ impl Layer {
         debug!("Creating new layer, level = {}, size = {}x{}", level, size[0], size[1]);
         debug_assert!(size[0]>= 0 && size[1] >= 0);
 
-        let fields = create_default_field_map(level, height_map);
+        let fields = create_default_field_map(level, size, height_map);
         let mesh = create_mesh(&fields, mesh_manager)?;
         debug!("Layer mesh vertex count: {}", mesh.get_vertex_count());
         let mut object = Object::new(Rc::new(mesh));
@@ -47,12 +47,35 @@ impl Renderable for Layer {
     }
 }
 
-fn create_default_field_map(level: i32, height_map: &HeightMap) -> FieldMap {
+fn create_default_field_map(level: i32, size: [i32; 2], height_map: &HeightMap) -> FieldMap {
     let mut fields = FieldMap::new();
     for (pos, h) in height_map.iter() {
         if level < *h {
             fields.insert(*pos, Field::default());
         }
     }
+    if level >= 0 {
+        let mut slope_fields = FieldMap::new();
+        for (pos, field) in fields.iter() {
+            for (dir, offset) in NEIGHBOUR_RELATION.iter() {
+                match dir {
+                    Direction::NORTH => continue,
+                    _ => {}
+                }
+                let nb_pos = [pos[0] + offset[0], pos[1] + offset[1]];
+                match fields.get(&nb_pos) {
+                    None => {
+                        let mut field = Field::default();
+                        field.set_type(FieldType::SLOPE(*dir));
+                        slope_fields.insert(nb_pos, field);
+                    },
+                    _ => {}
+                }
+            }
+        }
+        fields.extend(slope_fields);
+    }
+
+
     fields
 }
