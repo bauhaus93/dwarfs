@@ -2,7 +2,9 @@ use glm::Vector3;
 use gl::types::GLfloat;
 
 use application::ApplicationError;
-use graphics::{ Projection, Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError, projection::{ create_default_orthographic, create_default_perspective } };
+use graphics::{ Projection, Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
+use graphics::projection::{ create_default_orthographic, create_default_perspective };
+use graphics::transformation::create_direction;
 use world::{ Object, Camera, Layer, WorldError, traits::{ Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
@@ -49,7 +51,8 @@ impl World {
             Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
         };
         mesh_manager.add_mesh(test_mesh, "test");
-        let test_object = Object::new(mesh_manager.get_mesh_rc("test")?);
+        let mut test_object = Object::new(mesh_manager.get_mesh_rc("test")?);
+        test_object.set_translation(Vector3::new(1., 1., 1.));
 
         let mut world = World {
             texture_array: texture_array,
@@ -61,6 +64,7 @@ impl World {
             layers: Vec::new(),
             test_object: test_object
         };
+        info!("Camera direction = {:?}", create_direction(world.camera.get_rotation()));
 
         world.extend(10)?;
 
@@ -100,8 +104,9 @@ impl World {
 
     fn extend(&mut self, count: i32) -> Result<(), WorldError> {
         debug_assert!(!self.layers.is_empty());
+        let camera_direction = create_direction(self.camera.get_rotation());
         for _ in 0..count {
-            let layer = Layer::new(self.top_level - self.layers.len() as i32, self.layer_size,  &self.height_map, &self.mesh_manager)?;
+            let layer = Layer::new(self.top_level - self.layers.len() as i32, self.layer_size,  &self.height_map, &self.mesh_manager, camera_direction)?;
             self.layers.push(layer);
         }
         Ok(())

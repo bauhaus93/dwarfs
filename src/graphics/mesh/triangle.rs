@@ -43,6 +43,11 @@ impl Triangle {
         debug_assert!(axis < 3);
         self.vertex.iter().all(|v| v.on_plane(axis, value))
     }
+
+    //TODO remove normals from vertices, add normal to triangle
+    pub fn get_normal(&self) -> Vector3<GLfloat> {
+        self.vertex[0].get_normal()
+    }
 }
 
 impl Transformable for Triangle {

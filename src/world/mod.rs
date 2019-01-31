@@ -19,3 +19,4 @@ pub use self::noise::OctavedNoise;
 pub use self::noise::SimplexNoise;
 pub use self::world_error::WorldError;
 pub use self::direction::Direction;
+pub use self::direction::DIRECTION_VECTOR;
