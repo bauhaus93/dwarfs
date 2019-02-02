@@ -44,16 +44,17 @@ impl Triangle {
         self.vertex.iter().all(|v| v.on_plane(axis, value))
     }
 
+    pub fn move_vertices(&mut self, offset: Vector3<GLfloat>) {
+        self.vertex.iter_mut().for_each(|v| v.move_pos(offset));
+    }
+
+    pub fn rotate(&mut self, rotation_matrix: Matrix4<GLfloat>) {
+        self.vertex.iter_mut().for_each(|v| v.rotate(rotation_matrix));
+    }
+
     //TODO remove normals from vertices, add normal to triangle
     pub fn get_normal(&self) -> Vector3<GLfloat> {
         self.vertex[0].get_normal()
-    }
-}
-
-impl Transformable for Triangle {
-    fn transform(&mut self, transformation_matrix: Matrix4<GLfloat>) {
-        self.vertex.iter_mut()
-            .for_each(|v| v.transform(transformation_matrix));
     }
 }
 

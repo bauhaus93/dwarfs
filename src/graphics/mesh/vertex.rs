@@ -44,20 +44,20 @@ impl Vertex {
         self.uv.z = layer as GLfloat;
     }
 
+    pub fn move_pos(&mut self, offset: Vector3<GLfloat>) {
+        self.pos = self.pos.add(offset);
+    }
+
+    pub fn rotate(&mut self, rotation_matrix: Matrix4<GLfloat>) {
+        self.pos = (rotation_matrix * self.pos.extend(1.)).truncate(3);
+        self.normal = (rotation_matrix * self.normal.extend(1.)).truncate(3);
+    }
+
     pub fn on_plane(&self, axis: usize, value: GLfloat) -> bool {
         debug_assert!(axis < 3);
         (self.pos[axis] - value).abs() < 1e-3
     }
 }
-
-impl Transformable for Vertex {
-    fn transform(&mut self, transformation_matrix: Matrix4<GLfloat>) {
-        let old_pos = self.pos;
-        self.pos = (transformation_matrix * self.pos.extend(1.)).truncate(3);
-        self.normal = (transformation_matrix * self.normal.extend(1.)).truncate(3) - (self.pos - old_pos);
-    }
-}
-
 
 impl Default for Vertex {
     fn default() -> Self {

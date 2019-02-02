@@ -35,7 +35,7 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
 
         mesh.add_node(node);
     }
-    let build_options = [BuildOption::RemoveByDirection(camera_direction)];
-    mesh.build(Some(&build_options))?;
+
+    mesh.build_without_invisible(camera_direction)?;
     Ok(mesh)
 }

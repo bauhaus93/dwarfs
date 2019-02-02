@@ -103,7 +103,6 @@ impl World {
     }
 
     fn extend(&mut self, count: i32) -> Result<(), WorldError> {
-        debug_assert!(!self.layers.is_empty());
         let camera_direction = create_direction(self.camera.get_rotation());
         for _ in 0..count {
             let layer = Layer::new(self.top_level - self.layers.len() as i32, self.layer_size,  &self.height_map, &self.mesh_manager, camera_direction)?;

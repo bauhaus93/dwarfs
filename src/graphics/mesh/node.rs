@@ -1,8 +1,8 @@
 use gl::types::{ GLfloat };
 use glm::{ Vector3, Matrix4, GenNum };
 
-use utility::traits::{ Translatable, Rotatable, Scalable, Transformable };
-use graphics::transformation::create_transformation_matrix;
+use utility::traits::{ Translatable, Rotatable };
+use graphics::transformation::{ create_rotation_matrix };
 use super::Triangle;
 
 pub struct Node {
@@ -15,10 +15,12 @@ pub struct Node {
 impl Node {
 
     pub fn create_transformed_triangles(&self) -> Vec<Triangle> {
-        let transformation_matrix = create_transformation_matrix(self.translation, self.rotation, self.scale);
+        let rotation_matrix = create_rotation_matrix(self.rotation);
         let mut transformed_triangles = self.triangles.clone();
-        transformed_triangles.iter_mut()
-            .for_each(|t| t.transform(transformation_matrix));
+        for t in transformed_triangles.iter_mut() {
+            t.rotate(rotation_matrix);
+            t.move_vertices(self.translation);
+        }
         transformed_triangles
     }
 
@@ -59,11 +61,3 @@ impl Rotatable for Node {
     }
 }
 
-impl Scalable for Node {
-    fn set_scale(&mut self, new_scale: Vector3<GLfloat>) {
-        self.scale = new_scale;
-    }
-    fn get_scale(&self) -> Vector3<GLfloat> {
-        self.scale
-    }
-}

@@ -3,7 +3,7 @@ use std::collections::btree_map::Entry;
 use std::{ ptr, io, ffi::c_void, mem::size_of, ops::Sub };
 use gl;
 use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
-use glm::{ Matrix4, Vector3, builtin::dot };
+use glm::{ Matrix4, Vector3, builtin::{ dot, normalize } };
 
 use utility::read_obj;
 use graphics::{ check_opengl_error, OpenglError, mesh::{ Vertex, Triangle } };
@@ -34,16 +34,23 @@ impl Mesh {
         )
     }
 
-    pub fn build(&mut self, build_options: Option<&[BuildOption]>) -> Result<(), MeshError> {
-        let mut triangles = self.copy_triangles();
-        if let Some(bopts) = build_options {
-            let remove_count = apply_build_options(&mut triangles, bopts);
-            debug!("Removed {} triangles by applying build options", remove_count);
-        }
+    fn build_triangles(&mut self, triangles: &[Triangle]) -> Result<(), MeshError> {
         if triangles.len() > 0 {
-            self.vao = Some(VAO::new(&triangles)?);
+            self.vao = Some(VAO::new(triangles)?);
         }
         Ok(())
+    }
+
+    pub fn build(&mut self) -> Result<(), MeshError> {
+        let triangles = self.copy_triangles();
+        self.build_triangles(&triangles)
+    }
+
+    pub fn build_without_invisible(&mut self, camera_direction: Vector3<GLfloat>) -> Result<(), MeshError> {
+        let mut triangles = self.copy_triangles();
+        remove_incident_triangles(&mut triangles);
+        remove_triangles_by_direction(&mut triangles, camera_direction);
+        self.build_triangles(&triangles)
     }
 
     pub fn add_node(&mut self, node: Node){
@@ -55,8 +62,6 @@ impl Mesh {
             _ => 0
         }
     }
-
-
 
     pub fn copy_triangles(&self) -> Vec<Triangle> {
         let mut triangles = Vec::new();
@@ -81,17 +86,6 @@ impl Default for Mesh {
             nodes: Vec::new()
         }
     }
-}
-
-fn apply_build_options(triangles: &mut Vec<Triangle>, build_options: &[BuildOption]) -> usize {
-    let triangle_count_before = triangles.len();
-    for option in build_options.iter() {
-        match option {
-            BuildOption::RemoveIncident => remove_incident_triangles(triangles),
-            BuildOption::RemoveByDirection(dir_vec) => remove_triangles_by_direction(triangles, *dir_vec)
-        }
-    }
-    triangle_count_before - triangles.len()
 }
 
 fn remove_incident_triangles(triangles: &mut Vec<Triangle>) {
