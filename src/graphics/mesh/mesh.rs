@@ -34,28 +34,22 @@ impl Mesh {
         )
     }
 
-    fn build_triangles(&mut self, triangles: &[Triangle]) -> Result<(), MeshError> {
-        if triangles.len() > 0 {
-            self.vao = Some(VAO::new(triangles)?);
-        }
-        Ok(())
+    pub fn set_vao(&mut self, vao: VAO) {
+        self.vao = Some(vao);
     }
 
     pub fn build(&mut self) -> Result<(), MeshError> {
         let triangles = self.copy_triangles();
-        self.build_triangles(&triangles)
-    }
-
-    pub fn build_without_invisible(&mut self, camera_direction: Vector3<GLfloat>) -> Result<(), MeshError> {
-        let mut triangles = self.copy_triangles();
-        remove_incident_triangles(&mut triangles);
-        remove_triangles_by_direction(&mut triangles, camera_direction);
-        self.build_triangles(&triangles)
+        if triangles.len() > 0 {
+            self.vao = Some(VAO::new(&triangles)?);
+        }
+        Ok(())
     }
 
     pub fn add_node(&mut self, node: Node){
         self.nodes.push(node);
     }
+
     pub fn get_vertex_count(&self) -> u32 {
         match self.vao {
             Some(ref vao) => vao.get_index_count(),
@@ -86,12 +80,4 @@ impl Default for Mesh {
             nodes: Vec::new()
         }
     }
-}
-
-fn remove_incident_triangles(triangles: &mut Vec<Triangle>) {
-
-}
-
-fn remove_triangles_by_direction(triangles: &mut Vec<Triangle>, dir_vec: Vector3<f32>) {
-    triangles.retain(|t| dot(t.get_normal(), dir_vec) <= 0.);
 }

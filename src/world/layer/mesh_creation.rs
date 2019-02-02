@@ -3,10 +3,10 @@ use std::cmp::Ordering;
 use std::ops::{ Sub };
 
 use gl::types::GLfloat;
-use glm::{ Vector3, GenNum, builtin::{ cross, normalize } };
+use glm::{ Vector3, GenNum, builtin::{ dot, normalize } };
 
 use utility::{ cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
-use graphics::{  GraphicsError, mesh::{ MeshError, Node, Mesh, MeshManager, Triangle, BuildOption } };
+use graphics::{  GraphicsError, mesh::{ VAO, MeshError, Node, Mesh, MeshManager, Triangle, BuildOption } };
 use world::{ WorldError, Direction, DIRECTION_VECTOR };
 use super::{ Field, FieldType, FieldMaterial };
 
@@ -32,10 +32,21 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
         };
 
         node.add_triangles(triangles);
-
         mesh.add_node(node);
     }
-
-    mesh.build_without_invisible(camera_direction)?;
+    let mut triangles = mesh.copy_triangles();
+    remove_incident_triangles(&mut triangles);
+    remove_triangles_by_direction(&mut triangles, camera_direction);
+    let vao = VAO::new(&triangles)?;
+    mesh.set_vao(vao);
     Ok(mesh)
+}
+
+
+fn remove_incident_triangles(triangles: &mut Vec<Triangle>) {
+
+}
+
+fn remove_triangles_by_direction(triangles: &mut Vec<Triangle>, dir_vec: Vector3<f32>) {
+    triangles.retain(|t| dot(t.get_normal(), dir_vec) <= 0.);
 }

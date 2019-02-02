@@ -4,8 +4,8 @@ pub mod mesh;
 pub mod mesh_manager;
 pub mod mesh_error;
 pub mod build_option;
-mod vao;
-mod node;
+pub mod vao;
+pub mod node;
 
 pub use self::vertex::Vertex;
 pub use self::triangle::Triangle;
