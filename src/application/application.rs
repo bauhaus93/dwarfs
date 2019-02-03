@@ -13,10 +13,10 @@ use world::traits::Updatable;
 use utility::traits::Translatable;
 
 pub struct Application {
-    events_loop: glutin::EventsLoop,
-    window: glutin::GlWindow,
-    shader_program: graphics::ShaderProgram,
     world: world::World,
+    shader_program: graphics::ShaderProgram,
+    window: glutin::GlWindow,
+    events_loop: glutin::EventsLoop,
     quit: bool,
     time_passed: u32,
     sleep_time: time::Duration

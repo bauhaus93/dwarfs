@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 use std::{ ptr, io, ffi::c_void, mem::size_of, ops::Sub };
 use gl;
-use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
+use gl::types::{ GLint, GLuint, GLenum, GLsizeiptr };
 use glm::{ Matrix4, Vector3, builtin::{ dot, normalize } };
 
 use utility::read_obj;

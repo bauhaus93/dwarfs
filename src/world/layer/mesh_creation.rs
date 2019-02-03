@@ -1,6 +1,7 @@
 use std::collections::{ HashMap, BTreeSet };
 use std::cmp::Ordering;
 use std::ops::{ Sub };
+use std::time;
 
 use glm::{ Vector3, GenNum, builtin::{ dot, normalize } };
 
@@ -10,6 +11,8 @@ use world::{ WorldError, Direction, DIRECTION_VECTOR };
 use super::{ Field, FieldType, FieldMaterial };
 
 pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager, camera_direction: Vector3<Float>) -> Result<Mesh, MeshError> {
+    let start_time = time::Instant::now();
+
     let mut mesh = Mesh::default();
     for (pos, field) in fields {
         let mut node = Node::default();
@@ -42,6 +45,10 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
     trace!("After directional removal = {}", filtered_triangles.len());
     let vao = VAO::new(&filtered_triangles)?;
     mesh.set_vao(vao);
+
+    let creation_time = start_time.elapsed().as_secs() as u32 * 1000 + start_time.elapsed().subsec_millis();
+    debug!("Layer mesh stats: vertices = {}, creation time = {}ms", mesh.get_vertex_count(), creation_time);
+
     Ok(mesh)
 }
 
