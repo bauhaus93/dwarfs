@@ -1,14 +1,14 @@
-use gl::types::{ GLfloat };
 use glm::{ Vector3, Matrix4, GenNum };
 
 use utility::traits::{ Translatable, Rotatable };
+use utility::Float;
 use graphics::transformation::{ create_rotation_matrix };
 use super::Triangle;
 
 pub struct Node {
-    translation: Vector3<GLfloat>,
-    rotation: Vector3<GLfloat>,
-    scale: Vector3<GLfloat>,
+    translation: Vector3<Float>,
+    rotation: Vector3<Float>,
+    scale: Vector3<Float>,
     triangles: Vec<Triangle>,
 }
 
@@ -44,19 +44,19 @@ impl Default for Node {
 }
 
 impl Translatable for Node {
-    fn set_translation(&mut self, new_translation: Vector3<GLfloat>) {
+    fn set_translation(&mut self, new_translation: Vector3<Float>) {
         self.translation = new_translation;
     }
-    fn get_translation(&self) -> Vector3<GLfloat> {
+    fn get_translation(&self) -> Vector3<Float> {
         self.translation
     }
 }
 
 impl Rotatable for Node {
-    fn set_rotation(&mut self, new_rotation: Vector3<GLfloat>) {
+    fn set_rotation(&mut self, new_rotation: Vector3<Float>) {
         self.rotation = new_rotation;
     }
-    fn get_rotation(&self) -> Vector3<GLfloat> {
+    fn get_rotation(&self) -> Vector3<Float> {
         self.rotation
     }
 }

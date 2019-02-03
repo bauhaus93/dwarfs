@@ -3,7 +3,6 @@ pub mod triangle;
 pub mod mesh;
 pub mod mesh_manager;
 pub mod mesh_error;
-pub mod build_option;
 pub mod vao;
 pub mod node;
 
@@ -14,4 +13,3 @@ pub use self::mesh_manager::MeshManager;
 pub use self::mesh_error::MeshError;
 pub use self::vao::VAO;
 pub use self::node::Node;
-pub use self::build_option::BuildOption;

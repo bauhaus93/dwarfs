@@ -6,6 +6,7 @@ use image::GenericImageView;
 use gl::types::{ GLint, GLuint, GLsizei };
 
 use graphics::{ GraphicsError, OpenglError, check_opengl_error };
+use utility::Float;
 use super::TextureArray;
 
 pub struct TextureArrayBuilder {
@@ -32,16 +33,17 @@ impl TextureArrayBuilder {
     pub fn finish(self) -> Result<TextureArray, GraphicsError> {
         info!("Creating texture array");
         let mipmaps = {
-            let dim = min(self.texture_size[0], self.texture_size[1]) as f32;
+            let dim = min(self.texture_size[0], self.texture_size[1]) as Float;
             dim.log(2.0) as u32
         };
         let layer_count: u32 = self.texture_origins.len() as u32;
-        debug!("Size = {}x{}x{}, mipmaps = {}", self.texture_size[0], self.texture_size[1], layer_count, mipmaps);
+
         let texture_id = create_texture(
             (self.texture_size[0] as GLsizei, self.texture_size[1] as GLsizei),
             layer_count as GLsizei,
             mipmaps as GLsizei
         )?;
+        debug!("Id = {}, size = {}x{}x{}, mipmaps = {}", texture_id, self.texture_size[0], self.texture_size[1], layer_count, mipmaps);
 
         debug!("Opening atlas image '{}'", self.atlas_path);
         let img = match image::open(self.atlas_path.clone())? {

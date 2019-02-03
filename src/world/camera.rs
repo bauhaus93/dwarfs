@@ -1,32 +1,32 @@
 use std::ops::Add;
 use glm::{ Vector3, Matrix4 };
 use glm::ext::{ look_at, perspective };
-use gl::types::GLfloat;
 use num_traits::One;
 
 use graphics::{ Projection, create_direction, create_orthographic_projection, create_orthographic_projection_matrix, projection::{ create_default_orthographic, create_default_perspective } };
 use world::{ Model };
 use utility::traits::{ Translatable, Rotatable };
+use utility::Float;
 
 pub struct Camera {
     model: Model,
     projection: Projection,
-    view_matrix: Matrix4<GLfloat>,
-    projection_matrix: Matrix4<GLfloat>
+    view_matrix: Matrix4<Float>,
+    projection_matrix: Matrix4<Float>
 }
 
 impl Camera {
-     pub fn create_mvp_matrix(&self, model: &Model) -> Matrix4<GLfloat> {
+     pub fn create_mvp_matrix(&self, model: &Model) -> Matrix4<Float> {
         self.projection_matrix * self.view_matrix * model.get_matrix()
     }
 
-    pub fn zoom(&mut self, factor: f32) {
+    pub fn zoom(&mut self, factor: Float) {
         match &mut self.projection {
             Projection::Orthographic { width, .. } => { 
-                *width = f32::max(f32::min(*width * factor, 1e3), 2e0);
+                *width = Float::max(Float::min(*width * factor, 1e3), 2e0);
             },
             Projection::Perspective { fov, ..} => {
-                *fov = f32::max(f32::min((*fov * factor).to_degrees(), 179f32), 1f32).to_radians()
+                *fov = Float::max(Float::min((*fov * factor).to_degrees(), 179.), 1.).to_radians()
             }
         }
         self.update_projection();
@@ -46,7 +46,7 @@ impl Camera {
         self.view_matrix = look_at(
             self.model.get_translation(),
             self.model.get_translation().add(direction),
-            Vector3::<f32>::new(0., 0., 1.));
+            Vector3::<Float>::new(0., 0., 1.));
     }
 
     fn update_projection(&mut self) {
@@ -70,8 +70,8 @@ impl Default for Camera {
             model: Model::default(),
             projection:create_default_orthographic(),
             //projection:  create_default_perspective(),
-            view_matrix: Matrix4::<GLfloat>::one(),
-            projection_matrix: Matrix4::<GLfloat>::one()
+            view_matrix: Matrix4::<Float>::one(),
+            projection_matrix: Matrix4::<Float>::one()
         };
         camera.set_rotation(Vector3::new(45f32.to_radians(), 125f32.to_radians(), 0.));
         camera.update_projection();
@@ -80,20 +80,20 @@ impl Default for Camera {
 }
 
 impl Translatable for Camera {
-    fn set_translation(&mut self, new_translation: Vector3<f32>) {
+    fn set_translation(&mut self, new_translation: Vector3<Float>) {
         self.model.set_translation(new_translation);
         self.update_view();
     }
-    fn get_translation(&self) -> Vector3<f32> {
+    fn get_translation(&self) -> Vector3<Float> {
         self.model.get_translation()
     }
 }
 
 impl Rotatable for Camera {
-    fn set_rotation(&mut self, new_rotation: Vector3<f32>) {
-        const MAX_Y: f32 = std::f32::consts::PI - 0.01;
-        const MIN_Y: f32 = 0.01;
-        const DOUBLE_PI: f32 = 2. * std::f32::consts::PI;
+    fn set_rotation(&mut self, new_rotation: Vector3<Float>) {
+        const MAX_Y: Float = std::f32::consts::PI as Float - 0.01;
+        const MIN_Y: Float = 0.01;
+        const DOUBLE_PI: Float = 2. * std::f32::consts::PI as Float;
         let mut fixed_rotation = new_rotation;
         if fixed_rotation.x >= DOUBLE_PI {
             fixed_rotation.x -= DOUBLE_PI;
@@ -108,7 +108,7 @@ impl Rotatable for Camera {
         self.model.set_rotation(fixed_rotation);
         self.update_view();
     }
-    fn get_rotation(&self) -> Vector3<f32> {
+    fn get_rotation(&self) -> Vector3<Float> {
         self.model.get_rotation()
     }
 }

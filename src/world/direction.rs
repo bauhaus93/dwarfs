@@ -29,7 +29,7 @@ impl Ord for Direction {
         match (self.clone() as u8, other.clone() as u8) {
             (rhs, lhs) if rhs < lhs => Ordering::Less,
             (rhs, lhs) if rhs == lhs => Ordering::Equal,
-            (rhs, lhs) => Ordering::Greater
+            (_rhs, _lhs) => Ordering::Greater
         }
     }
 }

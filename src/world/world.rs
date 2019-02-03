@@ -1,5 +1,4 @@
 use glm::Vector3;
-use gl::types::GLfloat;
 
 use application::ApplicationError;
 use graphics::{ Projection, Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
@@ -9,6 +8,7 @@ use world::{ Object, Camera, Layer, WorldError, traits::{ Updatable, Renderable 
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
 use utility::traits::{ Translatable, Rotatable, Scalable };
+use utility::Float;
 
 pub struct World {
     texture_array: TextureArray,
@@ -45,14 +45,10 @@ impl World {
         let mut mesh_manager = MeshManager::default();
         mesh_manager.add_mesh(Mesh::from_obj("resources/obj/cube.obj")?, "cube");
         mesh_manager.add_mesh(Mesh::from_obj("resources/obj/slope.obj")?, "slope");
+        mesh_manager.add_mesh(Mesh::from_obj("resources/obj/test.obj")?, "test");
 
-        let test_mesh = match Mesh::from_obj("resources/obj/test.obj") {
-            Ok(mesh) => mesh,
-            Err(e) => { return Err(WorldError::from(GraphicsError::from(e))); }
-        };
-        mesh_manager.add_mesh(test_mesh, "test");
         let mut test_object = Object::new(mesh_manager.get_mesh_rc("test")?);
-        test_object.set_translation(Vector3::new(1., 1., 1.));
+        test_object.set_translation(Vector3::new(-1., -1., 1.));
 
         let mut world = World {
             texture_array: texture_array,
@@ -64,14 +60,15 @@ impl World {
             layers: Vec::new(),
             test_object: test_object
         };
-        info!("Camera direction = {:?}", create_direction(world.camera.get_rotation()));
+        let cam_dir = create_direction(world.camera.get_rotation());
+        info!("Camera direction = {:.2}/{:.2}/{:.2}", cam_dir.x, cam_dir.y, cam_dir.z);
 
         world.extend(10)?;
 
         Ok(world)
     }
 
-    pub fn move_camera(&mut self, mut offset: Vector3<f32>) {
+    pub fn move_camera(&mut self, mut offset: Vector3<Float>) {
         let curr_height = self.camera.get_translation().z;
         match self.camera.get_projection() {
             Projection::Orthographic { .. } if curr_height > 0. => { offset.z = -curr_height; },

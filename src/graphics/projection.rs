@@ -1,10 +1,12 @@
+use utility::Float;
+
 #[derive(Copy, Clone)]
 pub enum Projection {
-    Perspective { fov: f32, aspect_ratio: f32, near: f32, far: f32 },
-    Orthographic { width: f32, aspect_ratio: f32 }
+    Perspective { fov: Float, aspect_ratio: Float, near: Float, far: Float },
+    Orthographic { width: Float, aspect_ratio: Float }
 }
 
-pub fn create_orthographic_projection(width: f32, aspect_ratio: f32) -> Projection {
+pub fn create_orthographic_projection(width: Float, aspect_ratio: Float) -> Projection {
     Projection::Orthographic {
         width: width,
         aspect_ratio: aspect_ratio,
@@ -12,7 +14,7 @@ pub fn create_orthographic_projection(width: f32, aspect_ratio: f32) -> Projecti
 }
 
 pub fn create_default_perspective() -> Projection {
-    Projection::Perspective { fov: 45.0f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 500. }
+    Projection::Perspective { fov: 45f32.to_radians(), aspect_ratio: 4./3., near: 0.5, far: 500. }
 }
 
 pub fn create_default_orthographic() -> Projection {

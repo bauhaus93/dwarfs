@@ -1,12 +1,12 @@
-use gl::types::GLfloat;
 use glm::{ Vector3 };
 
 use graphics::mesh::{ Vertex, Triangle };
+use utility::Float;
 use super::{ read_file, FileError };
 
 pub fn read_obj(obj_path: &str) -> Result<Vec<Triangle>, FileError> {
     let (verts, uvs, normals, faces) = read_raw_content(obj_path)?;
-    debug!("Read obj file {}: vertices = {}, uvs = {}, normals = {}, faces = {}", obj_path, verts.len(), uvs.len(), normals.len(), faces.len());
+    debug!("Read obj file '{}': vertices = {}, uvs = {}, normals = {}, faces = {}", obj_path, verts.len(), uvs.len(), normals.len(), faces.len());
     let mut triangles: Vec<Triangle> = Vec::new();
     for face in faces {
         let mut triangle = Triangle::default();
@@ -26,15 +26,15 @@ pub fn read_obj(obj_path: &str) -> Result<Vec<Triangle>, FileError> {
     Ok(triangles)
 }
         
-fn read_raw_content(obj_path: &str) -> Result<(Vec<[f32; 3]>,
-                                               Vec<[f32; 2]>,
-                                               Vec<[f32; 3]>,
+fn read_raw_content(obj_path: &str) -> Result<(Vec<[Float; 3]>,
+                                               Vec<[Float; 2]>,
+                                               Vec<[Float; 3]>,
                                                Vec<[[usize; 3]; 3]>),
                                                FileError> {
     let content = read_file(obj_path)?;
-    let mut verts: Vec<[f32; 3]> = Vec::new();
-    let mut uvs: Vec<[f32; 2]> = Vec::new();
-    let mut normals: Vec<[f32; 3]> = Vec::new();
+    let mut verts: Vec<[Float; 3]> = Vec::new();
+    let mut uvs: Vec<[Float; 2]> = Vec::new();
+    let mut normals: Vec<[Float; 3]> = Vec::new();
     let mut faces: Vec<[[usize; 3]; 3]> = Vec::new();
     for line in content.lines() {
         let fields: Vec<&str> = line.split(" ").collect();
@@ -43,26 +43,26 @@ fn read_raw_content(obj_path: &str) -> Result<(Vec<[f32; 3]>,
                 if fields.len() != 4 {
                     return Err(FileError::UnexpectedFormat(line.to_string()));
                 }
-                let x: f32 = fields[1].parse()?;
-                let y: f32 = fields[2].parse()?;
-                let z: f32 = fields[3].parse()?;
+                let x: Float = fields[1].parse()?;
+                let y: Float = fields[2].parse()?;
+                let z: Float = fields[3].parse()?;
                 verts.push([x, y, z]);
             },
             "vt" => {
                 if fields.len() != 3 {
                     return Err(FileError::UnexpectedFormat(line.to_string()));
                 }
-                let u: f32 = fields[1].parse()?;
-                let v: f32 = fields[2].parse()?;
+                let u: Float = fields[1].parse()?;
+                let v: Float = fields[2].parse()?;
                 uvs.push([u, v]);
             },
             "vn" => {
                 if fields.len() != 4 {
                     return Err(FileError::UnexpectedFormat(line.to_string()));
                 }
-                let x: f32 = fields[1].parse()?;
-                let y: f32 = fields[2].parse()?;
-                let z: f32 = fields[3].parse()?;
+                let x: Float = fields[1].parse()?;
+                let y: Float = fields[2].parse()?;
+                let z: Float = fields[3].parse()?;
                 normals.push([x, y, z]);
             },
             "f" => {

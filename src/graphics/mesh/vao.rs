@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
 use std::{ ptr, io, ffi::c_void, mem::size_of };
 use gl;
-use gl::types::{ GLfloat, GLint, GLuint, GLenum, GLsizeiptr };
+use gl::types::{ GLint, GLuint, GLenum, GLsizeiptr };
 use glm::Matrix4;
 
-use utility::read_obj;
+use utility::{ Float, read_obj };
 use graphics::{ check_opengl_error, OpenglError, mesh::{ Vertex, Triangle } };
 use super::MeshError;
 
@@ -18,9 +18,9 @@ pub struct VAO {
 impl VAO {
     pub fn new(triangles: &[Triangle]) -> Result<VAO, MeshError> {
         let mut indexed_vertices: BTreeMap<Vertex, GLuint> = BTreeMap::new();
-        let mut position_buffer: Vec<GLfloat> = Vec::new();
-        let mut uv_buffer: Vec<GLfloat> = Vec::new();
-        let mut normal_buffer: Vec<GLfloat> = Vec::new();
+        let mut position_buffer: Vec<Float> = Vec::new();
+        let mut uv_buffer: Vec<Float> = Vec::new();
+        let mut normal_buffer: Vec<Float> = Vec::new();
         let mut index_buffer: Vec<GLuint> = Vec::new();
         for triangle in triangles.iter() {
             for vertex in triangle.as_vertices() {
@@ -92,16 +92,16 @@ impl Drop for VAO {
     }
 }
 
-fn load_vbos(position_buffer: Vec<GLfloat>,
-             uv_buffer: Vec<GLfloat>,
-             normal_buffer: Vec<GLfloat>,
+fn load_vbos(position_buffer: Vec<Float>,
+             uv_buffer: Vec<Float>,
+             normal_buffer: Vec<Float>,
              index_buffer: Vec<GLuint>) -> Result<[GLuint; 4], OpenglError> {
     let mut vbos: [GLuint; 4] = [0; 4];
     
     unsafe { gl::GenBuffers(4, &mut vbos[0] as * mut GLuint) };
     check_opengl_error("gl::GenBuffers")?;
 
-    match fill_buffer(vbos[0], gl::ARRAY_BUFFER, (position_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, position_buffer.as_ptr() as * const _) {
+    match fill_buffer(vbos[0], gl::ARRAY_BUFFER, (position_buffer.len() * size_of::<Float>()) as GLsizeiptr, position_buffer.as_ptr() as * const _) {
         Ok(_) => {},
         Err(e) => {
             delete_buffers(vbos);
@@ -109,7 +109,7 @@ fn load_vbos(position_buffer: Vec<GLfloat>,
         }
     }
 
-    match fill_buffer(vbos[1], gl::ARRAY_BUFFER, (uv_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, uv_buffer.as_ptr() as * const _) {
+    match fill_buffer(vbos[1], gl::ARRAY_BUFFER, (uv_buffer.len() * size_of::<Float>()) as GLsizeiptr, uv_buffer.as_ptr() as * const _) {
         Ok(_) => {},
         Err(e) => {
             delete_buffers(vbos);
@@ -117,7 +117,7 @@ fn load_vbos(position_buffer: Vec<GLfloat>,
         }
     }
 
-    match fill_buffer(vbos[2], gl::ARRAY_BUFFER, (normal_buffer.len() * size_of::<GLfloat>()) as GLsizeiptr, normal_buffer.as_ptr() as * const _) {
+    match fill_buffer(vbos[2], gl::ARRAY_BUFFER, (normal_buffer.len() * size_of::<Float>()) as GLsizeiptr, normal_buffer.as_ptr() as * const _) {
         Ok(_) => {},
         Err(e) => {
             delete_buffers(vbos);

@@ -1,9 +1,10 @@
 use gl;
-use gl::types::{ GLint, GLuint, GLfloat };
+use gl::types::{ GLint, GLuint };
 use glm::Matrix4;
 
-use super::ShaderProgramError;
+use utility::Float;
 use graphics::{ check_opengl_error };
+use super::ShaderProgramError;
 
 pub struct ShaderProgram {
     id: GLuint, 
@@ -32,9 +33,9 @@ impl ShaderProgram {
         }
     }
 
-    pub fn set_mvp_matrix(&self, mvp_matrix: &Matrix4<GLfloat>) -> Result<(), ShaderProgramError> {
+    pub fn set_mvp_matrix(&self, mvp_matrix: &Matrix4<Float>) -> Result<(), ShaderProgramError> {
         unsafe {
-            gl::UniformMatrix4fv(self.mvp_handle, 1, gl::FALSE, mvp_matrix.as_array().as_ptr() as * const GLfloat);
+            gl::UniformMatrix4fv(self.mvp_handle, 1, gl::FALSE, mvp_matrix.as_array().as_ptr() as * const Float);
         }
         check_opengl_error("gl::UniformMatrix4fv")?;
         Ok(())

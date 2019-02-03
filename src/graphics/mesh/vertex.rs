@@ -1,59 +1,58 @@
 use std::ops::Add;
 use std::cmp::Ordering;
 use std::fmt;
-use gl::types::GLfloat;
 use glm::{ GenNum, Vector3, Matrix4, builtin::{ normalize } };
 
 use graphics::{ create_rotation_matrix };
-use utility::{ cmp_vec, traits::Transformable  };
+use utility::{ Float, cmp_vec, traits::Transformable  };
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
-    pos: Vector3<GLfloat>,
-    uv: Vector3<GLfloat>,
-    normal: Vector3<GLfloat>
+    pos: Vector3<Float>,
+    uv: Vector3<Float>,
+    normal: Vector3<Float>
 }
 
 impl Vertex {
 
-    pub fn get_pos(&self) -> Vector3<GLfloat> {
+    pub fn get_pos(&self) -> Vector3<Float> {
         self.pos
     }
 
-    pub fn get_uv(&self) -> Vector3<GLfloat> {
+    pub fn get_uv(&self) -> Vector3<Float> {
         self.uv
     }
 
-    pub fn get_normal(&self) -> Vector3<GLfloat> {
+    pub fn get_normal(&self) -> Vector3<Float> {
         self.normal
     }
 
-    pub fn set_pos(&mut self, new_pos: Vector3<GLfloat>) {
+    pub fn set_pos(&mut self, new_pos: Vector3<Float>) {
         self.pos = new_pos;
     }
 
-    pub fn set_uv(&mut self, new_uv: Vector3<GLfloat>) {
+    pub fn set_uv(&mut self, new_uv: Vector3<Float>) {
         self.uv = new_uv;
     }
     
-    pub fn set_normal(&mut self, new_normal: Vector3<GLfloat>) {
+    pub fn set_normal(&mut self, new_normal: Vector3<Float>) {
         self.normal = new_normal;
     }
 
     pub fn set_uv_layer(&mut self, layer: u32) {
-        self.uv.z = layer as GLfloat;
+        self.uv.z = layer as Float;
     }
 
-    pub fn move_pos(&mut self, offset: Vector3<GLfloat>) {
+    pub fn move_pos(&mut self, offset: Vector3<Float>) {
         self.pos = self.pos.add(offset);
     }
 
-    pub fn rotate(&mut self, rotation_matrix: Matrix4<GLfloat>) {
+    pub fn rotate(&mut self, rotation_matrix: Matrix4<Float>) {
         self.pos = (rotation_matrix * self.pos.extend(1.)).truncate(3);
         self.normal = (rotation_matrix * self.normal.extend(1.)).truncate(3);
     }
 
-    pub fn on_plane(&self, axis: usize, value: GLfloat) -> bool {
+    pub fn on_plane(&self, axis: usize, value: Float) -> bool {
         debug_assert!(axis < 3);
         (self.pos[axis] - value).abs() < 1e-3
     }

@@ -2,20 +2,19 @@ use std::collections::{ HashMap, BTreeSet };
 use std::cmp::Ordering;
 use std::ops::{ Sub };
 
-use gl::types::GLfloat;
 use glm::{ Vector3, GenNum, builtin::{ dot, normalize } };
 
-use utility::{ cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
-use graphics::{  GraphicsError, mesh::{ Vertex, VAO, MeshError, Node, Mesh, MeshManager, Triangle, BuildOption } };
+use utility::{ Float, cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
+use graphics::{  GraphicsError, mesh::{ Vertex, VAO, MeshError, Node, Mesh, MeshManager, Triangle } };
 use world::{ WorldError, Direction, DIRECTION_VECTOR };
 use super::{ Field, FieldType, FieldMaterial };
 
-pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager, camera_direction: Vector3<f32>) -> Result<Mesh, MeshError> {
+pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager, camera_direction: Vector3<Float>) -> Result<Mesh, MeshError> {
     let mut mesh = Mesh::default();
     for (pos, field) in fields {
         let mut node = Node::default();
 
-        node.set_translation(Vector3::new(pos[0] as f32, pos[1] as f32, 0.));
+        node.set_translation(Vector3::new(pos[0] as Float, pos[1] as Float, 0.));
 
         let mut triangles = match field.get_type() {
             FieldType::CUBE => mesh_manager.get_mesh("cube")?.copy_triangles(),
@@ -36,11 +35,11 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
     }
 
     let triangles = mesh.copy_triangles();
-    debug!("Unfilteded triangle count = {}", triangles.len());
+    trace!("Unfilteded triangle count = {}", triangles.len());
     let filtered_triangles = remove_incident_triangles(triangles);
-    debug!("After incident removal = {}", filtered_triangles.len());
+    trace!("After incident removal = {}", filtered_triangles.len());
     let filtered_triangles = remove_triangles_by_direction(filtered_triangles, camera_direction);
-    debug!("After directional removal = {}", filtered_triangles.len());
+    trace!("After directional removal = {}", filtered_triangles.len());
     let vao = VAO::new(&filtered_triangles)?;
     mesh.set_vao(vao);
     Ok(mesh)
@@ -70,7 +69,7 @@ fn remove_incident_triangles(triangles: Vec<Triangle>) -> Vec<Triangle> {
     visible_triangles
 }
 
-fn remove_triangles_by_direction(triangles: Vec<Triangle>, dir_vec: Vector3<f32>) -> Vec<Triangle> {
+fn remove_triangles_by_direction(triangles: Vec<Triangle>, dir_vec: Vector3<Float>) -> Vec<Triangle> {
     triangles.into_iter().filter(|t| dot(t.get_normal(), dir_vec) <= 0.).collect()
 }
 

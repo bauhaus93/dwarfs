@@ -7,7 +7,7 @@ use glm::{ Matrix4, Vector3, builtin::{ dot, normalize } };
 
 use utility::read_obj;
 use graphics::{ check_opengl_error, OpenglError, mesh::{ Vertex, Triangle } };
-use super::{ VAO, Node, MeshError, BuildOption };
+use super::{ VAO, Node, MeshError };
 
 pub struct Mesh {
     vao: Option<VAO>,

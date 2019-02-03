@@ -1,9 +1,9 @@
 use std::fmt;
 
-use gl::types::GLfloat;
 use glm::{ Vector3, Matrix4 };
 
 use utility::traits::{ Transformable };
+use utility::Float;
 use super::Vertex;
 
 #[derive(Copy, Clone)]
@@ -45,21 +45,21 @@ impl Triangle {
         sorted_vertices
     }
 
-    pub fn on_plane(&self, axis: usize, value: f32) -> bool {
+    pub fn on_plane(&self, axis: usize, value: Float) -> bool {
         debug_assert!(axis < 3);
         self.vertex.iter().all(|v| v.on_plane(axis, value))
     }
 
-    pub fn move_vertices(&mut self, offset: Vector3<GLfloat>) {
+    pub fn move_vertices(&mut self, offset: Vector3<Float>) {
         self.vertex.iter_mut().for_each(|v| v.move_pos(offset));
     }
 
-    pub fn rotate(&mut self, rotation_matrix: Matrix4<GLfloat>) {
+    pub fn rotate(&mut self, rotation_matrix: Matrix4<Float>) {
         self.vertex.iter_mut().for_each(|v| v.rotate(rotation_matrix));
     }
 
     //TODO remove normals from vertices, add normal to triangle
-    pub fn get_normal(&self) -> Vector3<GLfloat> {
+    pub fn get_normal(&self) -> Vector3<Float> {
         self.vertex[0].get_normal()
     }
 }
