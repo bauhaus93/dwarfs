@@ -6,7 +6,7 @@ use gl::types::GLfloat;
 use glm::{ Vector3, GenNum, builtin::{ dot, normalize } };
 
 use utility::{ cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
-use graphics::{  GraphicsError, mesh::{ VAO, MeshError, Node, Mesh, MeshManager, Triangle, BuildOption } };
+use graphics::{  GraphicsError, mesh::{ Vertex, VAO, MeshError, Node, Mesh, MeshManager, Triangle, BuildOption } };
 use world::{ WorldError, Direction, DIRECTION_VECTOR };
 use super::{ Field, FieldType, FieldMaterial };
 
@@ -34,19 +34,101 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
         node.add_triangles(triangles);
         mesh.add_node(node);
     }
-    let mut triangles = mesh.copy_triangles();
-    remove_incident_triangles(&mut triangles);
-    remove_triangles_by_direction(&mut triangles, camera_direction);
-    let vao = VAO::new(&triangles)?;
+
+    let triangles = mesh.copy_triangles();
+    debug!("Unfilteded triangle count = {}", triangles.len());
+    let filtered_triangles = remove_incident_triangles(triangles);
+    debug!("After incident removal = {}", filtered_triangles.len());
+    let filtered_triangles = remove_triangles_by_direction(filtered_triangles, camera_direction);
+    debug!("After directional removal = {}", filtered_triangles.len());
+    let vao = VAO::new(&filtered_triangles)?;
     mesh.set_vao(vao);
     Ok(mesh)
 }
 
 
-fn remove_incident_triangles(triangles: &mut Vec<Triangle>) {
+fn remove_incident_triangles(triangles: Vec<Triangle>) -> Vec<Triangle> {
+    let mut triangle_set: BTreeSet<TriangleEntry> = BTreeSet::new();
+    for t in triangles.into_iter() {
+        let new_entry = TriangleEntry::new(t);
+        let updated_entry = match triangle_set.take(&new_entry) {
+            Some(mut existing_entry) => {
+                existing_entry.set_invisible();
+                existing_entry
+            },
+            None => new_entry
+        };
+        triangle_set.insert(updated_entry);
+    }
 
+    let mut visible_triangles = Vec::new();
+    for entry in triangle_set {
+        if let Some(t) = entry.into_triangle() {
+            visible_triangles.push(t);
+        }
+    }
+    visible_triangles
 }
 
-fn remove_triangles_by_direction(triangles: &mut Vec<Triangle>, dir_vec: Vector3<f32>) {
-    triangles.retain(|t| dot(t.get_normal(), dir_vec) <= 0.);
+fn remove_triangles_by_direction(triangles: Vec<Triangle>, dir_vec: Vector3<f32>) -> Vec<Triangle> {
+    triangles.into_iter().filter(|t| dot(t.get_normal(), dir_vec) <= 0.).collect()
 }
+
+struct TriangleEntry {
+    triangle: Triangle,
+    sorted_vertices: [Vertex; 3],
+    visible: bool
+}
+
+impl TriangleEntry {
+    pub fn new(triangle: Triangle) -> Self {
+        let sorted_vertices = triangle.get_sorted_vertices();
+        Self {
+            triangle: triangle,
+            sorted_vertices: sorted_vertices,
+            visible: true
+        }
+    }
+    pub fn set_invisible(&mut self) {
+        self.visible = false;
+    }
+    pub fn get_triangle(&self) -> &Triangle {
+        &self.triangle
+    }
+    pub fn into_triangle(self) -> Option<Triangle> {
+        if self.visible {
+            Some(self.triangle)
+        } else {
+            None
+        }
+    }
+}
+
+impl Ord for TriangleEntry {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let iter = self.sorted_vertices.iter()
+        .zip(other.sorted_vertices.iter());
+        for (lhs, rhs) in iter {
+            let result = cmp_vec(&lhs.get_pos(), &rhs.get_pos());
+            if result != Ordering::Equal {
+                return result;
+            }
+        }
+        Ordering::Equal
+    }
+}
+
+impl PartialOrd for TriangleEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for TriangleEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+impl Eq for TriangleEntry {}
+

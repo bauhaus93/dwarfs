@@ -117,10 +117,10 @@ impl PartialOrd for Vertex {
 
 impl fmt::Display for Vertex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "v = {:.2}/{:.2}/{:.2}, uv = {:.2}/{:.2}/{:.2}, n = {:.2}/{:.2}/{:.2}",
-            self.pos[0], self.pos[1], self.pos[2],
+        write!(f, "v = {:.2}/{:.2}/{:.2}",//, uv = {:.2}/{:.2}/{:.2}, n = {:.2}/{:.2}/{:.2}",
+            self.pos[0], self.pos[1], self.pos[2])/*,
             self.uv[0], self.uv[1], self.uv[2],
-            self.normal[0], self.normal[1], self.normal[2])
+            self.normal[0], self.normal[1], self.normal[2])*/
     }
 }
 

@@ -39,6 +39,12 @@ impl Triangle {
         &self.vertex
     }
 
+    pub fn get_sorted_vertices(&self) -> [Vertex; 3] {
+        let mut sorted_vertices = self.vertex.clone();
+        sorted_vertices.sort();
+        sorted_vertices
+    }
+
     pub fn on_plane(&self, axis: usize, value: f32) -> bool {
         debug_assert!(axis < 3);
         self.vertex.iter().all(|v| v.on_plane(axis, value))
