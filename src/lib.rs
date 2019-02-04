@@ -11,6 +11,7 @@ extern crate num_traits;
 extern crate rand;
 #[macro_use]
 extern crate lazy_static;
+extern crate futures;
 
 pub mod application;
 mod graphics;

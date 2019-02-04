@@ -1,10 +1,11 @@
+use std::collections::BTreeSet;
 use glm::Vector3;
 
 use application::ApplicationError;
 use graphics::{ Projection, Mesh, MeshManager, ShaderProgram, TextureArray, TextureArrayBuilder, GraphicsError };
 use graphics::projection::{ create_default_orthographic, create_default_perspective };
 use graphics::transformation::create_direction;
-use world::{ Object, Camera, Layer, WorldError, traits::{ Updatable, Renderable } };
+use world::{ Object, Camera, Layer, LayerCreator, WorldError, traits::{ Updatable, Renderable } };
 use world::noise::{ Noise, OctavedNoise };
 use world::height_map::{ HeightMap, create_height_map };
 use utility::traits::{ Translatable, Rotatable, Scalable };
@@ -13,11 +14,10 @@ use utility::Float;
 pub struct World {
     texture_array: TextureArray,
     camera: Camera,
-    height_map: HeightMap,
     mesh_manager: MeshManager,
     top_level: i32,
-    layer_size: [i32; 2],
-    layers: Vec<Layer>,
+    layer_creator: LayerCreator,
+    layers: BTreeSet<Layer>,
     test_object: Object
 }
 
@@ -43,27 +43,30 @@ impl World {
         let height_map = create_height_map(layer_size, &height_noise);
 
         let mut mesh_manager = MeshManager::default();
-        mesh_manager.add_mesh(Mesh::from_obj("resources/obj/cube.obj")?, "cube");
-        mesh_manager.add_mesh(Mesh::from_obj("resources/obj/slope.obj")?, "slope");
         mesh_manager.add_mesh(Mesh::from_obj("resources/obj/test.obj")?, "test");
 
         let mut test_object = Object::new(mesh_manager.get_mesh_rc("test")?);
         test_object.set_translation(Vector3::new(-1., -1., 1.));
 
-        let mut world = World {
-            texture_array: texture_array,
-            camera: Camera::default(),
-            height_map: height_map,
-            mesh_manager: mesh_manager,
-            top_level: top_level,
-            layer_size: layer_size,
-            layers: Vec::new(),
-            test_object: test_object
-        };
-        let cam_dir = create_direction(world.camera.get_rotation());
+        let camera = Camera::default();
+        let cam_dir = create_direction(camera.get_rotation());
         info!("Camera direction = {:.2}/{:.2}/{:.2}", cam_dir.x, cam_dir.y, cam_dir.z);
 
-        world.extend(10)?;
+        let layer_creator = LayerCreator::new(layer_size, height_map, cam_dir)?;
+
+        let mut world = World {
+            texture_array: texture_array,
+            camera: camera,
+            mesh_manager: mesh_manager,
+            top_level: top_level,
+            layer_creator: layer_creator,
+            layers: BTreeSet::new(),
+            test_object: test_object
+        };
+
+        for level in top_level..-5 {
+            world.request_layer_creation(level);
+        }
 
         Ok(world)
     }
@@ -91,21 +94,16 @@ impl World {
         }
     }
 
+    pub fn request_layer_creation(&mut self, level: i32) {
+        self.layer_creator.request_layer(level);
+    }
+
     pub fn get_camera(&self) -> &Camera {
         &self.camera
     }
 
     pub fn get_camera_mut(&mut self) -> &mut Camera {
         &mut self.camera
-    }
-
-    fn extend(&mut self, count: i32) -> Result<(), WorldError> {
-        let camera_direction = create_direction(self.camera.get_rotation());
-        for _ in 0..count {
-            let layer = Layer::new(self.top_level - self.layers.len() as i32, self.layer_size,  &self.height_map, &self.mesh_manager, camera_direction)?;
-            self.layers.push(layer);
-        }
-        Ok(())
     }
 
     pub fn render(&self, shader: &ShaderProgram) -> Result<(), WorldError> {

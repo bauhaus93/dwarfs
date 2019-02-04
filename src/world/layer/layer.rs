@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::cmp::Ordering;
 use std::collections::{ HashMap, hash_map::Entry };
 use std::time;
 
@@ -71,7 +72,31 @@ fn create_default_field_map(level: i32, size: [i32; 2], height_map: &HeightMap) 
         }
         fields.extend(slope_fields);
     }
-
-
     fields
 }
+
+
+
+impl Ord for Layer {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self.level, other.level) {
+            (lhs, rhs) if lhs < rhs => Ordering::Less,
+            (lhs, rhs) if lhs == rhs => Ordering::Equal,
+            (_lhs, _rhs) => Ordering::Greater
+        }
+    }
+}
+
+impl PartialOrd for Layer {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Layer {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+impl Eq for Layer {}

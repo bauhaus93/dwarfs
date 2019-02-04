@@ -20,7 +20,7 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
 
         node.set_translation(Vector3::new(pos[0] as Float, pos[1] as Float, 0.));
 
-        let mut triangles = match field.get_type() {
+        let triangles = match field.get_type() {
             FieldType::CUBE => mesh_manager.get_mesh("cube")?.copy_triangles(),
             FieldType::SLOPE(dir) => {
                 match dir {
@@ -45,8 +45,10 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
     let filtered_triangles = remove_triangles_by_direction(filtered_triangles, camera_direction);
     trace!("After directional removal = {}", filtered_triangles.len());
     let buffer = Buffer::from(filtered_triangles);
-    let vao = VAO::try_from(buffer)?;
-    mesh.set_vao(vao);
+    if !buffer.is_empty() {
+        let vao = VAO::try_from(buffer)?;
+        mesh.set_vao(vao);
+    }
 
     let creation_time = start_time.elapsed().as_secs() as u32 * 1000 + start_time.elapsed().subsec_millis();
     debug!("Layer mesh stats: vertices = {}, creation time = {}ms", mesh.get_vertex_count(), creation_time);

@@ -14,6 +14,10 @@ pub struct Buffer {
 
 impl Buffer {
 
+    pub fn is_empty(&self) -> bool {
+        self.index.len() == 0
+    }
+
     pub fn get_index_count(&self) -> usize {
         self.index.len()
     }
