@@ -1,4 +1,5 @@
 use std::collections::{ HashMap, BTreeSet };
+use std::convert::TryFrom;
 use std::cmp::Ordering;
 use std::ops::{ Sub };
 use std::time;
@@ -6,7 +7,7 @@ use std::time;
 use glm::{ Vector3, GenNum, builtin::{ dot, normalize } };
 
 use utility::{ Float, cmp_vec, traits::{ Translatable, Rotatable, Scalable } };
-use graphics::{  GraphicsError, mesh::{ Vertex, VAO, MeshError, Node, Mesh, MeshManager, Triangle } };
+use graphics::{  GraphicsError, mesh::{ Buffer, Vertex, VAO, MeshError, Node, Mesh, MeshManager, Triangle } };
 use world::{ WorldError, Direction, DIRECTION_VECTOR };
 use super::{ Field, FieldType, FieldMaterial };
 
@@ -43,7 +44,8 @@ pub fn create_mesh(fields: &HashMap<[i32; 2], Field>, mesh_manager: &MeshManager
     trace!("After incident removal = {}", filtered_triangles.len());
     let filtered_triangles = remove_triangles_by_direction(filtered_triangles, camera_direction);
     trace!("After directional removal = {}", filtered_triangles.len());
-    let vao = VAO::new(&filtered_triangles)?;
+    let buffer = Buffer::from(filtered_triangles);
+    let vao = VAO::try_from(buffer)?;
     mesh.set_vao(vao);
 
     let creation_time = start_time.elapsed().as_secs() as u32 * 1000 + start_time.elapsed().subsec_millis();

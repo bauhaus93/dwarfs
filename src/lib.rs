@@ -1,3 +1,5 @@
+#![feature(try_from)]
+
 #[macro_use]
 extern crate log;
 extern crate env_logger;
@@ -14,5 +16,6 @@ pub mod application;
 mod graphics;
 mod world;
 mod utility;
+
 
 pub use application::Application;
